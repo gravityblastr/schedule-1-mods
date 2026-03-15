@@ -1,0 +1,74 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GAME_DIR: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I'
+  MONO_MANAGED: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/Schedule I_Data/Managed'
+  MELONLOADER_DIR: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/MelonLoader/net35'
+  MODS_DIR: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/Mods'
+  LIBS_DIR: 'src/libs'
+  MODS: >-
+    DeliveryNotificationsMod
+    DeliveryPersistMod
+    IlluminationMod
+    LaunderMaxMod
+    LaunderScaleMod
+    LightPersistMod
+    SigningFreeMod
+    DontPunchRayMod
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  build:
+    desc: Build all mods
+    cmds:
+      - dotnet build src/GravityBlastrMods.sln -c Debug
+
+  copy-libs:
+    desc: Copy game DLLs to libs/ (run after installing MelonLoader)
+    cmds:
+      - mkdir -p {{.LIBS_DIR}}
+      - cp "{{.MONO_MANAGED}}/Assembly-CSharp.dll" "{{.MONO_MANAGED}}/UnityEngine.CoreModule.dll" "{{.MONO_MANAGED}}/UnityEngine.dll" "{{.MONO_MANAGED}}/Unity.TextMeshPro.dll" "{{.MONO_MANAGED}}/UnityEngine.UI.dll" "{{.MONO_MANAGED}}/UnityEngine.TextRenderingModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreTextEngineModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreFontEngineModule.dll" "{{.MONO_MANAGED}}/FishNet.Runtime.dll" "{{.MONO_MANAGED}}/Newtonsoft.Json.dll" "{{.MELONLOADER_DIR}}/MelonLoader.dll" "{{.MELONLOADER_DIR}}/0Harmony.dll" {{.LIBS_DIR}}/
+      - echo "Libs copied."
+
+  deploy:
+    desc: Copy built mod DLLs to game Mods folder
+    cmds:
+      - mkdir -p "{{.MODS_DIR}}"
+      - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/netstandard2.1/$mod.dll" "{{.MODS_DIR}}/"; done
+      - echo "Deployed to {{.MODS_DIR}}"
+
+  build-deploy:
+    desc: Build all mods and deploy to game
+    cmds:
+      - task: build
+      - task: deploy
+
+  decompile:
+    desc: Decompile Assembly-CSharp.dll to decompiled/
+    env:
+      DOTNET_ROLL_FORWARD: LatestMajor
+    cmds:
+      - ilspycmd "{{.MONO_MANAGED}}/Assembly-CSharp.dll" -p -o .work/decompiled/Assembly-CSharp
+      - echo "Decompilation complete."
+
+  clean:
+    desc: Remove our mod DLLs from game Mods folder
+    cmds:
+      - for mod in {{.MODS}}; do rm -f "{{.MODS_DIR}}/$mod.dll"; done
+      - echo "Cleaned our mods from {{.MODS_DIR}}"
+
+  check-game:
+    desc: Check if game and MelonLoader are installed
+    cmds:
+      - |
+        test -d "{{.GAME_DIR}}" && echo "Game found" || echo "Game NOT found at {{.GAME_DIR}}"
+        test -f "{{.MELONLOADER_DIR}}/MelonLoader.dll" && echo "MelonLoader found" || echo "MelonLoader NOT found"
+        test -f "{{.MONO_MANAGED}}/Assembly-CSharp.dll" && echo "Game assemblies found (Mono)" || echo "Assembly-CSharp.dll not found - switch to Mono branch"
+    silent: true

@@ -1,0 +1,11 @@
+## Build output
+bin/
+obj/
+
+## Game DLLs — copy locally with: task copy-libs
+libs/
+
+## IDE
+.vs/
+.vscode/
+*.user
