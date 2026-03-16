@@ -96,7 +96,7 @@ public class Core : MelonMod
         var vm = NetworkSingleton<VehicleManager>.Instance;
         if (vm != null)
         {
-            foreach (var vehicle in vm.AllVehicles)
+            foreach (var vehicle in vm.PlayerOwnedVehicles)
             {
                 if (vehicle == null || vehicle.GUID.Equals(Guid.Empty)) continue;
                 var lights = vehicle.GetComponent<VehicleLights>();
@@ -151,7 +151,7 @@ public class Core : MelonMod
             var vm = NetworkSingleton<VehicleManager>.Instance;
             if (vm != null)
             {
-                foreach (var vehicle in vm.AllVehicles)
+                foreach (var vehicle in vm.PlayerOwnedVehicles)
                 {
                     if (vehicle == null || vehicle.GUID.Equals(Guid.Empty)) continue;
                     string key = vehicle.GUID.ToString();
