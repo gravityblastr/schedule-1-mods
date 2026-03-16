@@ -3,6 +3,17 @@ using System.Collections.Generic;
 using System.IO;
 using HarmonyLib;
 using MelonLoader;
+using UnityEngine;
+
+#if IL2CPP
+using System.Text.Json;
+using Il2CppScheduleOne.DevUtilities;
+using Il2CppScheduleOne.Persistence;
+using Il2CppScheduleOne.PlayerScripts;
+using Il2CppScheduleOne.UI.Phone;
+using Il2CppScheduleOne.Vehicles;
+using Il2CppScheduleOne.Vision;
+#else
 using Newtonsoft.Json;
 using ScheduleOne.DevUtilities;
 using ScheduleOne.Persistence;
@@ -10,7 +21,7 @@ using ScheduleOne.PlayerScripts;
 using ScheduleOne.UI.Phone;
 using ScheduleOne.Vehicles;
 using ScheduleOne.Vision;
-using UnityEngine;
+#endif
 
 [assembly: MelonInfo(typeof(LightPersistMod.Core), "LightPersistMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
@@ -31,8 +42,8 @@ public class Core : MelonMod
 
     private class LightState
     {
-        public bool Flashlight;
-        public Dictionary<string, bool> VehicleHeadlights = new Dictionary<string, bool>();
+        public bool Flashlight { get; set; }
+        public Dictionary<string, bool> VehicleHeadlights { get; set; } = new Dictionary<string, bool>();
     }
 
     private static LightState? _savedData;
@@ -50,13 +61,26 @@ public class Core : MelonMod
             return new LightState();
         try
         {
-            return JsonConvert.DeserializeObject<LightState>(File.ReadAllText(path))
-                   ?? new LightState();
+            string json = File.ReadAllText(path);
+#if IL2CPP
+            return JsonSerializer.Deserialize<LightState>(json) ?? new LightState();
+#else
+            return JsonConvert.DeserializeObject<LightState>(json) ?? new LightState();
+#endif
         }
         catch
         {
             return new LightState();
         }
+    }
+
+    private static string SerializeToJson(object obj)
+    {
+#if IL2CPP
+        return JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = true });
+#else
+        return JsonConvert.SerializeObject(obj, Formatting.Indented);
+#endif
     }
 
     private static void OnGameSave()
@@ -74,7 +98,7 @@ public class Core : MelonMod
         {
             foreach (var vehicle in vm.AllVehicles)
             {
-                if (vehicle == null || vehicle.GUID == Guid.Empty) continue;
+                if (vehicle == null || vehicle.GUID.Equals(Guid.Empty)) continue;
                 var lights = vehicle.GetComponent<VehicleLights>();
                 if (lights != null)
                     state.VehicleHeadlights[vehicle.GUID.ToString()] = lights.HeadlightsOn;
@@ -85,7 +109,7 @@ public class Core : MelonMod
         if (path == null) return;
         try
         {
-            File.WriteAllText(path, JsonConvert.SerializeObject(state, Formatting.Indented));
+            File.WriteAllText(path, SerializeToJson(state));
             _savedData = state;
         }
         catch (Exception ex)
@@ -129,7 +153,7 @@ public class Core : MelonMod
             {
                 foreach (var vehicle in vm.AllVehicles)
                 {
-                    if (vehicle == null || vehicle.GUID == Guid.Empty) continue;
+                    if (vehicle == null || vehicle.GUID.Equals(Guid.Empty)) continue;
                     string key = vehicle.GUID.ToString();
                     if (_savedData.VehicleHeadlights.TryGetValue(key, out bool on) && on)
                     {
@@ -149,7 +173,7 @@ public class Core : MelonMod
             var sm = Singleton<SaveManager>.Instance;
             if (sm != null)
             {
-                sm.onSaveComplete.AddListener(OnGameSave);
+                sm.onSaveComplete.AddListener((UnityEngine.Events.UnityAction)OnGameSave);
                 _subscribedToSave = true;
             }
         }
@@ -158,7 +182,7 @@ public class Core : MelonMod
             var lm = Singleton<LoadManager>.Instance;
             if (lm != null)
             {
-                lm.onLoadComplete.AddListener(OnLoadComplete);
+                lm.onLoadComplete.AddListener((UnityEngine.Events.UnityAction)OnLoadComplete);
                 _subscribedToLoad = true;
             }
         }

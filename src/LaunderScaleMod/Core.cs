@@ -1,13 +1,23 @@
 using System.Collections.Generic;
 using HarmonyLib;
 using MelonLoader;
+using UnityEngine;
+
+#if IL2CPP
+using Il2CppTMPro;
+using Il2CppScheduleOne.DevUtilities;
+using Il2CppScheduleOne.Levelling;
+using Il2CppScheduleOne.Money;
+using Il2CppScheduleOne.Property;
+using Il2CppScheduleOne.UI;
+#else
+using TMPro;
 using ScheduleOne.DevUtilities;
 using ScheduleOne.Levelling;
 using ScheduleOne.Money;
 using ScheduleOne.Property;
 using ScheduleOne.UI;
-using TMPro;
-using UnityEngine;
+#endif
 
 [assembly: MelonInfo(typeof(LaunderScaleMod.Core), "LaunderScaleMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]

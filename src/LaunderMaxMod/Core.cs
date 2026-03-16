@@ -1,8 +1,14 @@
 using HarmonyLib;
 using MelonLoader;
-using ScheduleOne.UI;
-using TMPro;
 using UnityEngine.UI;
+
+#if IL2CPP
+using Il2CppTMPro;
+using Il2CppScheduleOne.UI;
+#else
+using TMPro;
+using ScheduleOne.UI;
+#endif
 
 [assembly: MelonInfo(typeof(LaunderMaxMod.Core), "LaunderMaxMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]

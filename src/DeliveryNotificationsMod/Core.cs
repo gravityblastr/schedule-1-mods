@@ -3,13 +3,22 @@ using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using MelonLoader;
+using UnityEngine;
+using UnityEngine.UI;
+
+#if IL2CPP
+using Il2CppTMPro;
+using Il2CppScheduleOne.Delivery;
+using Il2CppScheduleOne.DevUtilities;
+using Il2CppScheduleOne.UI;
+using Il2CppScheduleOne.UI.Phone.Delivery;
+#else
+using TMPro;
 using ScheduleOne.Delivery;
 using ScheduleOne.DevUtilities;
 using ScheduleOne.UI;
 using ScheduleOne.UI.Phone.Delivery;
-using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
+#endif
 
 [assembly: MelonInfo(typeof(DeliveryNotificationsMod.Core), "DeliveryNotificationsMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]

@@ -1,7 +1,12 @@
 using System.Collections.Generic;
 using HarmonyLib;
 using MelonLoader;
+
+#if IL2CPP
+using Il2CppScheduleOne.Dialogue;
+#else
 using ScheduleOne.Dialogue;
+#endif
 
 [assembly: MelonInfo(typeof(DontPunchRayMod.Core), "DontPunchRayMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]

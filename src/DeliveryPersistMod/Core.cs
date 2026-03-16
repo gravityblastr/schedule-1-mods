@@ -4,12 +4,21 @@ using System.IO;
 using System.Linq;
 using HarmonyLib;
 using MelonLoader;
+using UnityEngine;
+
+#if IL2CPP
+using System.Text.Json;
+using Il2CppScheduleOne.DevUtilities;
+using Il2CppScheduleOne.Persistence;
+using Il2CppScheduleOne.UI.Phone.Delivery;
+using SProperty = Il2CppScheduleOne.Property.Property;
+#else
 using Newtonsoft.Json;
 using ScheduleOne.DevUtilities;
 using ScheduleOne.Persistence;
 using ScheduleOne.UI.Phone.Delivery;
-using UnityEngine;
 using SProperty = ScheduleOne.Property.Property;
+#endif
 
 [assembly: MelonInfo(typeof(DeliveryPersistMod.Core), "DeliveryPersistMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
@@ -36,9 +45,9 @@ public class Core : MelonMod
 
     private class ShopState
     {
-        public string Dest = "";
-        public int Dock;
-        public Dictionary<string, int> Qty = new Dictionary<string, int>();
+        public string Dest { get; set; } = "";
+        public int Dock { get; set; }
+        public Dictionary<string, int> Qty { get; set; } = new Dictionary<string, int>();
     }
 
     // Loaded once from disk on game load; never overwritten from disk again during the session.
@@ -57,14 +66,28 @@ public class Core : MelonMod
             return new Dictionary<string, ShopState>();
         try
         {
-            return JsonConvert.DeserializeObject<Dictionary<string, ShopState>>(
-                       File.ReadAllText(path))
+            string json = File.ReadAllText(path);
+#if IL2CPP
+            return JsonSerializer.Deserialize<Dictionary<string, ShopState>>(json)
                    ?? new Dictionary<string, ShopState>();
+#else
+            return JsonConvert.DeserializeObject<Dictionary<string, ShopState>>(json)
+                   ?? new Dictionary<string, ShopState>();
+#endif
         }
         catch
         {
             return new Dictionary<string, ShopState>();
         }
+    }
+
+    private static string SerializeToJson(object obj)
+    {
+#if IL2CPP
+        return JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = true });
+#else
+        return JsonConvert.SerializeObject(obj, Formatting.Indented);
+#endif
     }
 
     /// <summary>
@@ -118,7 +141,7 @@ public class Core : MelonMod
         if (path == null) return;
         try
         {
-            File.WriteAllText(path, JsonConvert.SerializeObject(data, Formatting.Indented));
+            File.WriteAllText(path, SerializeToJson(data));
             _savedData = data;
         }
         catch (Exception ex)
@@ -159,7 +182,7 @@ public class Core : MelonMod
             var sm = Singleton<SaveManager>.Instance;
             if (sm != null)
             {
-                sm.onSaveComplete.AddListener(OnGameSave);
+                sm.onSaveComplete.AddListener((UnityEngine.Events.UnityAction)OnGameSave);
                 _subscribedToSave = true;
             }
         }
@@ -168,7 +191,7 @@ public class Core : MelonMod
             var lm = Singleton<LoadManager>.Instance;
             if (lm != null)
             {
-                lm.onLoadComplete.AddListener(OnLoadComplete);
+                lm.onLoadComplete.AddListener((UnityEngine.Events.UnityAction)OnLoadComplete);
                 _subscribedToLoad = true;
             }
         }
@@ -229,7 +252,11 @@ public static class RefreshDestinationUIPatch
         var (destCode, dock, _) = Core.GetSavedState(__instance.MatchingShopInterfaceName);
         if (string.IsNullOrEmpty(destCode)) return;
 
-        var prop = SProperty.OwnedProperties.FirstOrDefault(p => p.PropertyCode == destCode);
+        SProperty? prop = null;
+        foreach (var p in SProperty.OwnedProperties)
+        {
+            if (p.PropertyCode == destCode) { prop = p; break; }
+        }
         if (prop == null) return;
 
         t.Field("destinationProperty").SetValue(prop);

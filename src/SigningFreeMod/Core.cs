@@ -1,7 +1,13 @@
 using HarmonyLib;
 using MelonLoader;
+
+#if IL2CPP
+using Il2CppScheduleOne.Dialogue;
+using Il2CppScheduleOne.UI.Phone.ContactsApp;
+#else
 using ScheduleOne.Dialogue;
 using ScheduleOne.UI.Phone.ContactsApp;
+#endif
 
 [assembly: MelonInfo(typeof(SigningFreeMod.Core), "SigningFreeMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]

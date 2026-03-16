@@ -1,10 +1,17 @@
 using System.Collections.Generic;
 using HarmonyLib;
 using MelonLoader;
+using UnityEngine;
+
+#if IL2CPP
+using Il2CppScheduleOne.DevUtilities;
+using Il2CppScheduleOne.UI.Phone;
+using Il2CppScheduleOne.Vehicles;
+#else
 using ScheduleOne.DevUtilities;
 using ScheduleOne.UI.Phone;
 using ScheduleOne.Vehicles;
-using UnityEngine;
+#endif
 
 [assembly: MelonInfo(typeof(IlluminationMod.Core), "IlluminationMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
