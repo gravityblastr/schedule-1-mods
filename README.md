@@ -2,7 +2,7 @@
 
 A collection of mods for [Schedule I](https://store.steampowered.com/app/3164500/Schedule_I/) using [MelonLoader](https://melonwiki.xyz/) and Harmony.
 
-> **Note:** These mods are built for the **Mono** branch of the game.
+> Supports both the **Mono** and **IL2CPP** branches of the game.
 
 ## Quality of Life
 
@@ -38,14 +38,14 @@ Scales laundering capacity based on player rank. Starting at Peddler I, capacity
 
 ## Prerequisites
 
-- [Schedule I](https://store.steampowered.com/app/3164500/Schedule_I/) on the **Mono** branch
+- [Schedule I](https://store.steampowered.com/app/3164500/Schedule_I/)
 - [MelonLoader](https://melonwiki.xyz/) installed for Schedule I
 - [.NET SDK](https://dotnet.microsoft.com/download) (for building from source)
 - [Task](https://taskfile.dev/) (optional, for build/deploy commands)
 
-### Switching to the Mono branch
+### Game branches
 
-In Steam, right-click Schedule I > Properties > Betas, then select the **mono** branch.
+The game ships as **IL2CPP** (default). To switch to **Mono**, right-click Schedule I in Steam > Properties > Betas > select **mono**. These mods support both branches — the build system and deploy task handle the differences automatically.
 
 ## Installing (prebuilt)
 
@@ -58,18 +58,18 @@ C:\Program Files (x86)\Steam\steamapps\common\Schedule I\Mods\
 ## Building from source
 
 1. Clone this repo
-2. Copy required game DLLs into `src/libs/`:
+2. Copy required game DLLs:
    ```bash
-   task copy-libs
+   task copy-libs-mono      # Mono branch
+   task copy-libs-il2cpp    # IL2CPP branch (run game once with MelonLoader first)
    ```
-   This copies `Assembly-CSharp.dll`, Unity engine DLLs, `MelonLoader.dll`, `0Harmony.dll`, etc. from your game install.
 
-3. Build all mods:
+3. Build all mods (both targets):
    ```bash
    task build
    ```
 
-4. Deploy to your game:
+4. Deploy to your game (auto-detects Mono vs IL2CPP):
    ```bash
    task deploy
    ```
@@ -83,8 +83,12 @@ task build-deploy
 
 | Command | Description |
 |---------|-------------|
+| `task build-mono` | Build Mono target only |
+| `task build-il2cpp` | Build IL2CPP target only |
+| `task deploy-mono` | Deploy Mono DLLs explicitly |
+| `task deploy-il2cpp` | Deploy IL2CPP DLLs explicitly |
 | `task clean` | Remove mod DLLs from the game's Mods folder |
-| `task check-game` | Verify game and MelonLoader installation |
+| `task check-game` | Verify game and MelonLoader installation, show active branch |
 | `task decompile` | Decompile `Assembly-CSharp.dll` (requires [ILSpy CLI](https://github.com/icsharpcode/ILSpy)) |
 
 ## License
