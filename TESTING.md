@@ -36,6 +36,7 @@ Test on both Mono and IL2CPP branches.
 - [ ] At Peddler I+: capacity label shows a scaled value (>$20,000)
 - [ ] "At capacity" message triggers at scaled limit, not base $20,000
 - [ ] After confirming a launder operation, UI updates immediately (not stale)
+- [ ] Correct amounts are added to balance when laundering completes
 
 ## LaunderMaxMod
 
@@ -50,7 +51,6 @@ Test on both Mono and IL2CPP branches.
 - [ ] Turn vehicle headlights on, exit vehicle, save, load — headlights are on
 - [ ] Multiple vehicles each remember their own headlight state
 - [ ] `LightPersistMod.json` exists in save folder with correct structure
-- [ ] In multiplayer: other players see restored flashlight state
 
 ## DeliveryPersistMod
 

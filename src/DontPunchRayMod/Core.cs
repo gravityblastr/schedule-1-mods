@@ -1,11 +1,14 @@
 using System.Collections.Generic;
 using HarmonyLib;
 using MelonLoader;
+using UnityEngine;
 
 #if IL2CPP
 using Il2CppScheduleOne.Dialogue;
+using Il2CppScheduleOne.Economy;
 #else
 using ScheduleOne.Dialogue;
+using ScheduleOne.Economy;
 #endif
 
 [assembly: MelonInfo(typeof(DontPunchRayMod.Core), "DontPunchRayMod", "1.0.0", "gravityblastr")]
@@ -47,6 +50,13 @@ public static class ModifyChoiceListPatch
         if (dialogueLabel != "ENTRY")
             return;
 
+        // Only inject choices for NPCs that are Customers (store vendors).
+        // DialogueController lives on a child "Dialogue" GameObject, so search up
+        // the hierarchy. Other NPCs (e.g. Donna Martin) don't have a Customer
+        // component and shouldn't get choices injected. (fixes #10)
+        if (__instance.GetComponentInParent<Customer>() == null)
+            return;
+
         Core.InjectedChoices.Clear();
         foreach (var choice in __instance.Choices)
         {
@@ -56,8 +66,18 @@ public static class ModifyChoiceListPatch
 
         Core.InjectedChoices.Sort((a, b) => b.Priority.CompareTo(a.Priority));
 
+        // Build a set of existing choice texts so we can skip duplicates.
+        // Override dialogues may already contain choices that also exist as
+        // programmatic choices (e.g. "You wanna buy something?"). (fixes #9)
+        var existingTexts = new HashSet<string>();
+        foreach (var existing in existingChoices)
+            existingTexts.Add(existing.ChoiceText);
+
         for (int i = 0; i < Core.InjectedChoices.Count; i++)
         {
+            if (existingTexts.Contains(Core.InjectedChoices[i].ChoiceText))
+                continue;
+
             existingChoices.Add(new DialogueChoiceData
             {
                 ChoiceText = Core.InjectedChoices[i].ChoiceText,
