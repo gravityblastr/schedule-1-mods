@@ -37,7 +37,7 @@ public class Core : MelonMod
 [HarmonyPatch(typeof(DeliveryInstance), nameof(DeliveryInstance.SetStatus))]
 public static class DeliveryStatusPatch
 {
-    private static readonly FieldInfo _entriesField =
+    private static readonly FieldInfo? _entriesField =
         typeof(NotificationsManager).GetField("entries", BindingFlags.NonPublic | BindingFlags.Instance);
 
     private static readonly Dictionary<string, DateTime> _seen = new();

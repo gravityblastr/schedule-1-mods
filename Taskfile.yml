@@ -95,12 +95,41 @@ tasks:
       - echo "IL2CPP libs copied."
 
   decompile:
-    desc: Decompile Assembly-CSharp.dll to .work/decompiled/
+    desc: Decompile Assembly-CSharp.dll, commit, and tag with game version
     env:
       DOTNET_ROLL_FORWARD: LatestMajor
     cmds:
-      - ilspycmd "{{.MONO_MANAGED}}/Assembly-CSharp.dll" -p -o .work/decompiled/Assembly-CSharp
-      - echo "Decompilation complete."
+      - |
+        if [ -f "{{.MONO_MANAGED}}/Assembly-CSharp.dll" ]; then
+          echo "Using Mono Assembly-CSharp.dll"
+        else
+          echo "Mono Assembly-CSharp.dll not found. Switch to the Mono branch in Steam before decompiling."
+          exit 1
+        fi
+        rm -rf .work/decompiled/Assembly-CSharp
+        ilspycmd "{{.MONO_MANAGED}}/Assembly-CSharp.dll" -p -o .work/decompiled/Assembly-CSharp
+      - |
+        cd .work/decompiled
+        VERSION=$(python3 -c "
+        import re
+        with open('C:/Program Files (x86)/Steam/steamapps/common/Schedule I/Schedule I_Data/globalgamemanagers', 'rb') as f:
+            data = f.read()
+        m = re.search(rb'(\d+\.\d+\.\d+[a-z]\d+)', data[1000:])
+        print(m.group().decode() if m else 'unknown', end='')
+        ")
+        echo "Detected game version: $VERSION"
+        git add -A
+        if git diff --cached --quiet; then
+          echo "No changes from previous decompile."
+        else
+          git commit -m "Decompile Assembly-CSharp from Schedule I v${VERSION}"
+        fi
+        if [ -n "$(git tag -l "v${VERSION}")" ]; then
+          echo "Tag v${VERSION} already exists."
+        else
+          git tag -a "v${VERSION}" -m "Schedule I v${VERSION}"
+          echo "Tagged v${VERSION}."
+        fi
 
   clean:
     desc: Remove our mod DLLs from game Mods folder
