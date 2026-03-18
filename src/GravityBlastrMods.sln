@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SigningFreeMod", "SigningFr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DontPunchRayMod", "DontPunchRayMod\DontPunchRayMod.csproj", "{B9C0D1E2-F3A4-4B5C-F38E-9506172839DA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrefsPersistMod", "PrefsPersistMod\PrefsPersistMod.csproj", "{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -125,6 +127,18 @@ Global
 		{B9C0D1E2-F3A4-4B5C-F38E-9506172839DA}.Release|x64.Build.0 = Release|Any CPU
 		{B9C0D1E2-F3A4-4B5C-F38E-9506172839DA}.Release|x86.ActiveCfg = Release|Any CPU
 		{B9C0D1E2-F3A4-4B5C-F38E-9506172839DA}.Release|x86.Build.0 = Release|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Debug|x64.Build.0 = Debug|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Debug|x86.Build.0 = Debug|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Release|x64.ActiveCfg = Release|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Release|x64.Build.0 = Release|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Release|x86.ActiveCfg = Release|Any CPU
+		{C0D1E2F3-A4B5-4C6D-A49F-0617283940EB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

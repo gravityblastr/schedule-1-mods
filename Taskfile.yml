@@ -20,6 +20,7 @@ vars:
     LightPersistMod
     SigningFreeMod
     DontPunchRayMod
+    PrefsPersistMod
 
 tasks:
   default:

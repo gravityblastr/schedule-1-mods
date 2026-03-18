@@ -8,7 +8,14 @@ Test on both Mono and IL2CPP branches.
 - [ ] `task build` succeeds (both targets, 0 errors)
 - [ ] `task check-game` shows correct active branch
 - [ ] `task deploy` detects the right branch and deploys
-- [ ] Game launches with MelonLoader, all 8 mods show "loaded" in log
+- [ ] Game launches with MelonLoader, all 9 mods show "loaded" in log
+
+## PrefsPersistMod
+
+- [ ] Change a graphics setting (e.g. quality) — MelonLoader log shows "Graphics settings saved to disk."
+- [ ] Change a display setting (e.g. resolution) and confirm — log shows "Display settings saved to disk."
+- [ ] Change graphics settings, force-kill the game (Task Manager), relaunch — settings are preserved
+- [ ] Change audio volume, force-kill, relaunch — volume settings are preserved
 
 ## SigningFreeMod
 

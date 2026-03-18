@@ -18,6 +18,9 @@ Auto-selects the maximum amount when opening the laundering interface, so you do
 ### LightPersistMod
 Saves and restores the state of your flashlight and vehicle headlights across game loads. If you left your headlights on when you saved, they'll be on when you load.
 
+### PrefsPersistMod
+Fixes settings not persisting between launches. The game's settings loader crashes on certain system locales, silently losing all your preferences. This mod patches the locale bug, restores saved settings on startup, and flushes changes to disk immediately so they survive crashes too.
+
 ### SigningFreeMod
 Fixes the "signing free" typo in the game — it should be "signing fee". Patches the contacts app, dialogue text, and dialogue choices.
 
