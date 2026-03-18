@@ -25,6 +25,10 @@
       <HintPath>..\libs-il2cpp\Il2CppNewtonsoft.Json.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="Il2CppScheduleOne.Core">
+      <HintPath>..\libs-il2cpp\Il2CppScheduleOne.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>
