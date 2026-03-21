@@ -26,6 +26,9 @@ Fixes the "signing free" typo in the game — it should be "signing fee". Patche
 
 ## Gameplay
 
+### LockerNotificationsMod
+Sends a text message from Manny (the fixer) when employee pay depletes a locker below what's needed for tomorrow. One message per property per day — if five lockers at the warehouse all run dry, you get one text, not five.
+
 ### DontPunchRayMod
 You don't have to punch store owners anymore to sell to them. The sell option is now included in their store dialog choices.
 
@@ -38,6 +41,9 @@ Improves lighting for better nighttime visibility:
 
 ### LaunderScaleMod
 Scales laundering capacity based on player rank. Starting at Peddler I, capacity increases by 5% per rank tier, up to 3x the base capacity. No more $20,000/day cap - it's now $60,000/day.
+
+### UnpackMod
+Allows unpacking bricks at a packaging station even when there's packaging (baggies/jars) in the packaging slot. Unpacking a brick only produces loose product — it doesn't use the packaging slot, so the game's restriction is unnecessary.
 
 ## Prerequisites
 
@@ -63,8 +69,8 @@ C:\Program Files (x86)\Steam\steamapps\common\Schedule I\Mods\
 1. Clone this repo
 2. Copy required game DLLs:
    ```bash
-   task copy-libs-mono      # Mono branch
-   task copy-libs-il2cpp    # IL2CPP branch (run game once with MelonLoader first)
+   task game:copy-libs:mono      # Mono branch
+   task game:copy-libs:il2cpp    # IL2CPP branch (run game once with MelonLoader first)
    ```
 
 3. Build all mods (both targets):
@@ -86,13 +92,13 @@ task build-deploy
 
 | Command | Description |
 |---------|-------------|
-| `task build-mono` | Build Mono target only |
-| `task build-il2cpp` | Build IL2CPP target only |
-| `task deploy-mono` | Deploy Mono DLLs explicitly |
-| `task deploy-il2cpp` | Deploy IL2CPP DLLs explicitly |
-| `task clean` | Remove mod DLLs from the game's Mods folder |
-| `task check-game` | Verify game and MelonLoader installation, show active branch |
-| `task decompile` | Decompile `Assembly-CSharp.dll` (requires [ILSpy CLI](https://github.com/icsharpcode/ILSpy)) |
+| `task build:mono` | Build Mono target only |
+| `task build:il2cpp` | Build IL2CPP target only |
+| `task deploy:mono` | Deploy Mono DLLs explicitly |
+| `task deploy:il2cpp` | Deploy IL2CPP DLLs explicitly |
+| `task game:clean` | Remove mod DLLs from the game's Mods folder |
+| `task game:check` | Verify game and MelonLoader installation, show active branch |
+| `task game:decompile` | Decompile `Assembly-CSharp.dll` (requires [ILSpy CLI](https://github.com/icsharpcode/ILSpy)) |
 
 ## License
 

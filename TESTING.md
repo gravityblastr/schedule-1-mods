@@ -6,9 +6,9 @@ Test on both Mono and IL2CPP branches.
 ## Setup
 
 - [ ] `task build` succeeds (both targets, 0 errors)
-- [ ] `task check-game` shows correct active branch
+- [ ] `task game:check` shows correct active branch
 - [ ] `task deploy` detects the right branch and deploys
-- [ ] Game launches with MelonLoader, all 9 mods show "loaded" in log
+- [ ] Game launches with MelonLoader, all 11 mods show "loaded" in log
 
 ## PrefsPersistMod
 
@@ -77,6 +77,26 @@ Test on both Mono and IL2CPP branches.
 - [ ] Notification text is readable (not cut off)
 - [ ] No duplicate notifications for the same event
 - [ ] Loading a save does NOT trigger notifications for existing delivery states
+
+## LockerNotificationsMod
+
+- [ ] Hire an employee, assign a locker with exactly one day's wage, sleep — text message from Manny appears
+- [ ] Message shows the correct property name
+- [ ] Message shows as unread notification on phone (like supplier dead drop messages)
+- [ ] Multiple employees at the same property running low — only one message for that property
+- [ ] Employees at different properties running low — one message per property
+- [ ] Locker has enough for tomorrow after pay — no message sent
+- [ ] Sleep again (new day) — notifications can fire again for the same properties
+- [ ] Save, load — no spurious messages on load
+
+## UnpackMod
+
+- [ ] Place a brick in the output slot of a packaging station with baggies/jars in the packaging slot
+- [ ] "Unpack" button is enabled (not grayed out)
+- [ ] Click Unpack — brick is unpacked into loose product, packaging slot is unchanged
+- [ ] Unpack a non-brick (e.g. baggie) with a full packaging slot — still correctly blocked ("Unpackaged items won't fit!")
+- [ ] Unpack a brick when product slot is full — correctly blocked (ProductSlotFull)
+- [ ] Packaging operations (packing loose into baggies/jars) still work normally
 
 ## Cross-Mod
 

@@ -21,6 +21,8 @@ vars:
     SigningFreeMod
     DontPunchRayMod
     PrefsPersistMod
+    LockerNotificationsMod
+    UnpackMod
 
 tasks:
   default:
@@ -34,12 +36,12 @@ tasks:
     cmds:
       - dotnet build src/GravityBlastrMods.sln -c Debug
 
-  build-mono:
+  build:mono:
     desc: Build all mods (Mono only)
     cmds:
       - dotnet build src/GravityBlastrMods.sln -c Debug -f netstandard2.1
 
-  build-il2cpp:
+  build:il2cpp:
     desc: Build all mods (IL2CPP only)
     cmds:
       - dotnet build src/GravityBlastrMods.sln -c Debug -f net6.0
@@ -50,24 +52,24 @@ tasks:
       - |
         if [ -f "{{.GAME_DIR}}/GameAssembly.dll" ]; then
           echo "Detected IL2CPP branch"
-          task deploy-il2cpp
+          task deploy:il2cpp
         else
           echo "Detected Mono branch"
-          task deploy-mono
+          task deploy:mono
         fi
 
-  deploy-mono:
+  deploy:mono:
     desc: Clean and copy built mod DLLs to game Mods folder (Mono)
     cmds:
-      - task: clean
+      - task: game:clean
       - mkdir -p "{{.MODS_DIR}}"
       - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/netstandard2.1/$mod.dll" "{{.MODS_DIR}}/"; done
       - echo "Deployed (Mono) to {{.MODS_DIR}}"
 
-  deploy-il2cpp:
+  deploy:il2cpp:
     desc: Clean and copy built mod DLLs to game Mods folder (IL2CPP)
     cmds:
-      - task: clean
+      - task: game:clean
       - mkdir -p "{{.MODS_DIR}}"
       - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/net6.0/$mod.dll" "{{.MODS_DIR}}/"; done
       - echo "Deployed (IL2CPP) to {{.MODS_DIR}}"
@@ -78,24 +80,24 @@ tasks:
       - task: build
       - task: deploy
 
-  copy-libs-mono:
+  game:copy-libs:mono:
     desc: Copy Mono game DLLs to libs/ (run after installing MelonLoader)
     cmds:
       - mkdir -p {{.LIBS_DIR}}
-      - cp "{{.MONO_MANAGED}}/Assembly-CSharp.dll" "{{.MONO_MANAGED}}/UnityEngine.CoreModule.dll" "{{.MONO_MANAGED}}/UnityEngine.dll" "{{.MONO_MANAGED}}/Unity.TextMeshPro.dll" "{{.MONO_MANAGED}}/UnityEngine.UI.dll" "{{.MONO_MANAGED}}/UnityEngine.TextRenderingModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreTextEngineModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreFontEngineModule.dll" "{{.MONO_MANAGED}}/FishNet.Runtime.dll" "{{.MONO_MANAGED}}/Newtonsoft.Json.dll" "{{.MELONLOADER_MONO}}/MelonLoader.dll" "{{.MELONLOADER_MONO}}/0Harmony.dll" {{.LIBS_DIR}}/
+      - cp "{{.MONO_MANAGED}}/Assembly-CSharp.dll" "{{.MONO_MANAGED}}/UnityEngine.CoreModule.dll" "{{.MONO_MANAGED}}/UnityEngine.dll" "{{.MONO_MANAGED}}/Unity.TextMeshPro.dll" "{{.MONO_MANAGED}}/UnityEngine.UI.dll" "{{.MONO_MANAGED}}/UnityEngine.UIModule.dll" "{{.MONO_MANAGED}}/UnityEngine.InputLegacyModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextRenderingModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreTextEngineModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreFontEngineModule.dll" "{{.MONO_MANAGED}}/FishNet.Runtime.dll" "{{.MONO_MANAGED}}/Newtonsoft.Json.dll" "{{.MELONLOADER_MONO}}/MelonLoader.dll" "{{.MELONLOADER_MONO}}/0Harmony.dll" {{.LIBS_DIR}}/
       - echo "Mono libs copied."
 
-  copy-libs-il2cpp:
+  game:copy-libs:il2cpp:
     desc: Copy IL2CPP game DLLs to libs-il2cpp/ (run after first IL2CPP game launch)
     preconditions:
       - sh: test -d "{{.IL2CPP_ASSEMBLIES}}"
         msg: "Il2CppAssemblies not found — launch the IL2CPP game with MelonLoader once first"
     cmds:
       - mkdir -p {{.LIBS_IL2CPP_DIR}}
-      - cp "{{.MELONLOADER_IL2CPP}}/MelonLoader.dll" "{{.MELONLOADER_IL2CPP}}/0Harmony.dll" "{{.MELONLOADER_IL2CPP}}/Il2CppInterop.Runtime.dll" "{{.MELONLOADER_IL2CPP}}/Il2CppInterop.Common.dll" "{{.IL2CPP_ASSEMBLIES}}/Assembly-CSharp.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.CoreModule.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.UI.dll" "{{.IL2CPP_ASSEMBLIES}}/Unity.TextMeshPro.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextRenderingModule.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextCoreTextEngineModule.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextCoreFontEngineModule.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2CppFishNet.Runtime.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2CppNewtonsoft.Json.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2Cppmscorlib.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2CppScheduleOne.Core.dll" {{.LIBS_IL2CPP_DIR}}/
+      - cp "{{.MELONLOADER_IL2CPP}}/MelonLoader.dll" "{{.MELONLOADER_IL2CPP}}/0Harmony.dll" "{{.MELONLOADER_IL2CPP}}/Il2CppInterop.Runtime.dll" "{{.MELONLOADER_IL2CPP}}/Il2CppInterop.Common.dll" "{{.IL2CPP_ASSEMBLIES}}/Assembly-CSharp.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.CoreModule.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.UI.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.UIModule.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.InputLegacyModule.dll" "{{.IL2CPP_ASSEMBLIES}}/Unity.TextMeshPro.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextRenderingModule.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextCoreTextEngineModule.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextCoreFontEngineModule.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2CppFishNet.Runtime.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2CppNewtonsoft.Json.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2Cppmscorlib.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2CppScheduleOne.Core.dll" {{.LIBS_IL2CPP_DIR}}/
       - echo "IL2CPP libs copied."
 
-  decompile:
+  game:decompile:
     desc: Decompile Assembly-CSharp.dll, commit, and tag with game version
     env:
       DOTNET_ROLL_FORWARD: LatestMajor
@@ -132,13 +134,19 @@ tasks:
           echo "Tagged v${VERSION}."
         fi
 
-  clean:
+  game:launch:
+    desc: Launch Schedule I via Steam
+    cmds:
+      - cmd /c start steam://rungameid/3164500
+    silent: true
+
+  game:clean:
     desc: Remove our mod DLLs from game Mods folder
     cmds:
       - for mod in {{.MODS}}; do rm -f "{{.MODS_DIR}}/$mod.dll"; done
       - echo "Cleaned our mods from {{.MODS_DIR}}"
 
-  check-game:
+  game:check:
     desc: Check if game and MelonLoader are installed
     cmds:
       - |
