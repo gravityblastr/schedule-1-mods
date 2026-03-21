@@ -22,6 +22,7 @@ vars:
     DontPunchRayMod
     PrefsPersistMod
     LockerNotificationsMod
+    NotesAppMod
     UnpackMod
 
 tasks:

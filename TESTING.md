@@ -89,6 +89,21 @@ Test on both Mono and IL2CPP branches.
 - [ ] Sleep again (new day) — notifications can fire again for the same properties
 - [ ] Save, load — no spurious messages on load
 
+## NotesAppMod
+
+- [ ] Open phone — Notes app icon appears on home screen
+- [ ] Tap Notes icon — app opens showing empty state ("No notes yet")
+- [ ] Tap + button — creates a new note, opens detail view
+- [ ] Type a title and body, tap back — returns to list, note appears with title and timestamp
+- [ ] Tap a note in list — opens detail view with correct title and body
+- [ ] Edit title/body, tap back — changes are preserved in the list
+- [ ] Press Escape while in detail view — returns to list (does not close the app)
+- [ ] Press Escape while in list view — closes the Notes app
+- [ ] Tap Delete — note is removed, returns to list
+- [ ] Save game, load game — notes are restored from `NotesAppMod.json` in save folder
+- [ ] Fresh save (no JSON file): app starts empty, no errors
+- [ ] Read-only notes (created via API) show "[Read Only]" prefix, inputs are disabled, no delete button
+
 ## UnpackMod
 
 - [ ] Place a brick in the output slot of a packaging station with baggies/jars in the packaging slot

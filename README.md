@@ -45,6 +45,9 @@ Scales laundering capacity based on player rank. Starting at Peddler I, capacity
 ### UnpackMod
 Allows unpacking bricks at a packaging station even when there's packaging (baggies/jars) in the packaging slot. Unpacking a brick only produces loose product — it doesn't use the packaging slot, so the game's restriction is unnecessary.
 
+### NotesAppMod
+Adds a **Notes** app to the in-game phone. Create, view, edit, and delete notes with a title and body. Notes are sorted by most recently modified and automatically saved to your savegame directory. Exposes a public API (`NotesAPI`) for other mods to programmatically create, read, update, and delete notes — including read-only notes that the player can view but not edit (useful for auto-generated game data).
+
 ## Prerequisites
 
 - [Schedule I](https://store.steampowered.com/app/3164500/Schedule_I/)
