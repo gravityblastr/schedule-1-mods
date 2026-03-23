@@ -46,6 +46,11 @@ tasks:
     cmds:
       - dotnet build src/GravityBlastrMods.sln -c Debug -f net6.0
 
+  build:clean:
+    desc: Clean all build outputs
+    cmds:
+      - dotnet clean src/GravityBlastrMods.sln
+
   deploy:
     desc: Auto-detect game branch and deploy correct mod DLLs
     cmds:
@@ -61,7 +66,7 @@ tasks:
   deploy:mono:
     desc: Clean and copy built mod DLLs to game Mods folder (Mono)
     cmds:
-      - task: game:clean
+      - task: deploy:clean
       - mkdir -p "{{.MODS_DIR}}"
       - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/netstandard2.1/$mod.dll" "{{.MODS_DIR}}/"; done
       - echo "Deployed (Mono) to {{.MODS_DIR}}"
@@ -69,7 +74,7 @@ tasks:
   deploy:il2cpp:
     desc: Clean and copy built mod DLLs to game Mods folder (IL2CPP)
     cmds:
-      - task: game:clean
+      - task: deploy:clean
       - mkdir -p "{{.MODS_DIR}}"
       - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/net6.0/$mod.dll" "{{.MODS_DIR}}/"; done
       - echo "Deployed (IL2CPP) to {{.MODS_DIR}}"
@@ -140,11 +145,17 @@ tasks:
       - cmd /c start steam://rungameid/3164500
     silent: true
 
-  game:clean:
+  deploy:clean:
     desc: Remove our mod DLLs from game Mods folder
     cmds:
       - for mod in {{.MODS}}; do rm -f "{{.MODS_DIR}}/$mod.dll"; done
       - echo "Cleaned our mods from {{.MODS_DIR}}"
+
+  game:open:
+    desc: Open the game folder in Explorer
+    cmds:
+      - cmd /c start "" "{{.GAME_DIR}}"
+    silent: true
 
   game:check:
     desc: Check if game and MelonLoader are installed

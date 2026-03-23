@@ -151,7 +151,10 @@ public class Core : MelonMod
     }
 
     /// <summary>
-    /// Called after all save data is loaded. Items are now unlocked, so quantities can be restored.
+    /// Called after all save data is loaded. Items are now unlocked, so quantities and
+    /// destinations can be restored. Destinations must be restored eagerly here — not
+    /// deferred to RefreshDestinationUI — because a save can fire before the player
+    /// opens the delivery app, which would overwrite good data with empty fields.
     /// </summary>
     private static void OnLoadComplete()
     {
@@ -161,17 +164,35 @@ public class Core : MelonMod
         var shops = app.GetComponentsInChildren<DeliveryShop>(includeInactive: true);
         foreach (var shop in shops)
         {
-            var (_, _, quantities) = GetSavedState(shop.MatchingShopInterfaceName);
+            var (destCode, dock, quantities) = GetSavedState(shop.MatchingShopInterfaceName);
+            var t = Traverse.Create(shop);
+
+            // Restore destination property and dock
+            if (!string.IsNullOrEmpty(destCode))
+            {
+                SProperty? prop = null;
+                foreach (var p in SProperty.OwnedProperties)
+                {
+                    if (p.PropertyCode == destCode) { prop = p; break; }
+                }
+                if (prop != null)
+                {
+                    t.Field("destinationProperty").SetValue(prop);
+                    t.Field("loadingDockIndex").SetValue(dock);
+                }
+            }
+
+            // Restore quantities
             if (quantities.Count == 0) continue;
 
-            var entries = Traverse.Create(shop).Field("listingEntries").GetValue<List<ListingEntry>>();
+            var entries = t.Field("listingEntries").GetValue<List<ListingEntry>>();
             foreach (var entry in entries)
             {
                 if (quantities.TryGetValue(entry.MatchingListing.Item.ID, out int qty))
                     entry.SetQuantity(qty, notify: false);
             }
 
-            Traverse.Create(shop).Method("RefreshCart").GetValue();
+            t.Method("RefreshCart").GetValue();
         }
     }
 
@@ -222,7 +243,6 @@ public static class ResetCartPatch
 
 /// <summary>
 /// Subscribe to save/load hooks on first DeliveryShop.Start. Invalidate cache for fresh read.
-/// Quantity restoration is deferred to onLoadComplete (items aren't unlocked during Start).
 /// </summary>
 [HarmonyPatch(typeof(DeliveryShop), "Start")]
 public static class StartPatch
