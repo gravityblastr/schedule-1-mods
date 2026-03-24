@@ -46,10 +46,14 @@ public class Core : MelonMod
     internal static void UpdateCapacityLabel(LaunderingInterface ui)
     {
         float scaled = GetScaledCapacity(ui.business);
+#if IL2CPP
+        ui.launderCapacityLabel.text = MoneyManager.FormatAmount(scaled);
+#else
         Traverse.Create(ui)
             .Field("launderCapacityLabel")
             .GetValue<TextMeshProUGUI>()
             .text = MoneyManager.FormatAmount(scaled);
+#endif
     }
 
     public static void CacheOriginalCapacity(Business b)
@@ -133,9 +137,15 @@ public static class CreateEntryPatch
     {
         if (__instance.isOpen)
         {
+#if IL2CPP
+            __instance.UpdateTimeline();
+            __instance.UpdateCurrentTotal();
+            __instance.RefreshLaunderButton();
+#else
             Traverse.Create(__instance).Method("UpdateTimeline").GetValue();
             Traverse.Create(__instance).Method("UpdateCurrentTotal").GetValue();
             Traverse.Create(__instance).Method("RefreshLaunderButton").GetValue();
+#endif
             Core.UpdateCapacityLabel(__instance);
         }
     }
