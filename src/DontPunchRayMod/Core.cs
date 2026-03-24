@@ -66,11 +66,20 @@ public static class ModifyChoiceListPatch
 
         Core.InjectedChoices.Sort((a, b) => b.Priority.CompareTo(a.Priority));
 
+        // Under IL2CPP, the ref List<DialogueChoiceData> parameter is not marshalled
+        // correctly by Harmony. Instead, modify handler.CurrentChoices directly —
+        // that's the actual list the caller uses after ModifyChoiceList returns.
+#if IL2CPP
+        var choiceList = __instance.handler.CurrentChoices;
+#else
+        var choiceList = existingChoices;
+#endif
+
         // Build a set of existing choice texts so we can skip duplicates.
         // Override dialogues may already contain choices that also exist as
         // programmatic choices (e.g. "You wanna buy something?"). (fixes #9)
         var existingTexts = new HashSet<string>();
-        foreach (var existing in existingChoices)
+        foreach (var existing in choiceList)
             existingTexts.Add(existing.ChoiceText);
 
         for (int i = 0; i < Core.InjectedChoices.Count; i++)
@@ -78,7 +87,7 @@ public static class ModifyChoiceListPatch
             if (existingTexts.Contains(Core.InjectedChoices[i].ChoiceText))
                 continue;
 
-            existingChoices.Add(new DialogueChoiceData
+            choiceList.Add(new DialogueChoiceData
             {
                 ChoiceText = Core.InjectedChoices[i].ChoiceText,
                 ChoiceLabel = "DPRAY_" + i,
@@ -107,10 +116,14 @@ public static class ChoiceCallbackPatch
         choice.onChoosen?.Invoke();
         if (choice.Conversation != null)
         {
+#if IL2CPP
+            __instance.handler.InitializeDialogue(choice.Conversation);
+#else
             Traverse.Create(__instance)
                 .Field("handler")
                 .GetValue<DialogueHandler>()
                 .InitializeDialogue(choice.Conversation);
+#endif
         }
     }
 }
