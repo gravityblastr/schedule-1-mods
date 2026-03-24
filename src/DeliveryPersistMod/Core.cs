@@ -117,14 +117,19 @@ public class Core : MelonMod
 
         foreach (var shop in shops)
         {
-            var t = Traverse.Create(shop);
             var state = new ShopState();
 
+#if IL2CPP
+            state.Dest = shop.destinationProperty?.PropertyCode ?? "";
+            state.Dock = shop.loadingDockIndex;
+            var entries = shop.listingEntries;
+#else
+            var t = Traverse.Create(shop);
             var dest = t.Field("destinationProperty").GetValue<SProperty>();
             state.Dest = dest?.PropertyCode ?? "";
             state.Dock = t.Field("loadingDockIndex").GetValue<int>();
-
             var entries = t.Field("listingEntries").GetValue<List<ListingEntry>>();
+#endif
             if (entries != null)
             {
                 foreach (var e in entries)
@@ -165,7 +170,6 @@ public class Core : MelonMod
         foreach (var shop in shops)
         {
             var (destCode, dock, quantities) = GetSavedState(shop.MatchingShopInterfaceName);
-            var t = Traverse.Create(shop);
 
             // Restore destination property and dock
             if (!string.IsNullOrEmpty(destCode))
@@ -177,22 +181,36 @@ public class Core : MelonMod
                 }
                 if (prop != null)
                 {
+#if IL2CPP
+                    shop.destinationProperty = prop;
+                    shop.loadingDockIndex = dock;
+#else
+                    var t = Traverse.Create(shop);
                     t.Field("destinationProperty").SetValue(prop);
                     t.Field("loadingDockIndex").SetValue(dock);
+#endif
                 }
             }
 
             // Restore quantities
             if (quantities.Count == 0) continue;
 
-            var entries = t.Field("listingEntries").GetValue<List<ListingEntry>>();
+#if IL2CPP
+            var entries = shop.listingEntries;
+#else
+            var entries = Traverse.Create(shop).Field("listingEntries").GetValue<List<ListingEntry>>();
+#endif
             foreach (var entry in entries)
             {
                 if (quantities.TryGetValue(entry.MatchingListing.Item.ID, out int qty))
                     entry.SetQuantity(qty, notify: false);
             }
 
-            t.Method("RefreshCart").GetValue();
+#if IL2CPP
+            shop.RefreshCart();
+#else
+            Traverse.Create(shop).Method("RefreshCart").GetValue();
+#endif
         }
     }
 
@@ -234,9 +252,14 @@ public static class ResetCartPatch
     [HarmonyPrefix]
     public static bool Prefix(DeliveryShop __instance)
     {
+#if IL2CPP
+        __instance.RefreshCart();
+        __instance.RefreshOrderButton();
+#else
         var t = Traverse.Create(__instance);
         t.Method("RefreshCart").GetValue();
         t.Method("RefreshOrderButton").GetValue();
+#endif
         return false; // skip original
     }
 }
@@ -265,9 +288,12 @@ public static class RefreshDestinationUIPatch
     [HarmonyPrefix]
     public static void Prefix(DeliveryShop __instance)
     {
-        var t = Traverse.Create(__instance);
         // Only restore if nothing is selected yet (don't override user's in-session choice)
-        if (t.Field("destinationProperty").GetValue<SProperty>() != null) return;
+#if IL2CPP
+        if (__instance.destinationProperty != null) return;
+#else
+        if (Traverse.Create(__instance).Field("destinationProperty").GetValue<SProperty>() != null) return;
+#endif
 
         var (destCode, dock, _) = Core.GetSavedState(__instance.MatchingShopInterfaceName);
         if (string.IsNullOrEmpty(destCode)) return;
@@ -279,7 +305,13 @@ public static class RefreshDestinationUIPatch
         }
         if (prop == null) return;
 
+#if IL2CPP
+        __instance.destinationProperty = prop;
+        __instance.loadingDockIndex = dock;
+#else
+        var t = Traverse.Create(__instance);
         t.Field("destinationProperty").SetValue(prop);
         t.Field("loadingDockIndex").SetValue(dock);
+#endif
     }
 }
