@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using HarmonyLib;
+#if !IL2CPP
+using System.Reflection;
+#endif
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.UI;
@@ -37,8 +39,10 @@ public class Core : MelonMod
 [HarmonyPatch(typeof(DeliveryInstance), nameof(DeliveryInstance.SetStatus))]
 public static class DeliveryStatusPatch
 {
+#if !IL2CPP
     private static readonly FieldInfo? _entriesField =
         typeof(NotificationsManager).GetField("entries", BindingFlags.NonPublic | BindingFlags.Instance);
+#endif
 
     private static readonly Dictionary<string, DateTime> _seen = new();
 
@@ -92,8 +96,14 @@ public static class DeliveryStatusPatch
     /// </summary>
     private static void StyleNotification(NotificationsManager manager, EDeliveryStatus status)
     {
+#if IL2CPP
+        var entries = manager.entries;
+        if (entries == null || entries.Count == 0)
+            return;
+#else
         if (_entriesField?.GetValue(manager) is not List<RectTransform> entries || entries.Count == 0)
             return;
+#endif
 
         var entry = entries[^1];
         var container = entry.Find("Container")?.GetComponent<RectTransform>();

@@ -22,6 +22,13 @@ public class Core : MelonMod
     internal static Fixer? CachedFixer;
     internal static readonly System.Random Rng = new();
 
+    // After OnSleepEnd, we delay the check so the tick cycle can deduct wages first.
+    // OnSleepEnd fires before wages are deducted; the tick processes them shortly after.
+    internal static float CheckAfterTime = -1f;
+    // Properties that were already unable to pay BEFORE today's wages were deducted.
+    // We only notify for properties that become unable to pay after deduction.
+    internal static readonly HashSet<string> AlreadyEmptyProperties = new();
+
     internal static readonly string[] MessageTemplates =
     {
         "Heads up. Lockers at the {0} are running low - your crew might not get paid tomorrow.",
@@ -33,7 +40,6 @@ public class Core : MelonMod
 
     public override void OnInitializeMelon()
     {
-        HarmonyInstance.PatchAll(typeof(SetIsPaidPatch));
         HarmonyInstance.PatchAll(typeof(SleepEndPatch));
         LoggerInstance.Msg("LockerNotificationsMod loaded.");
     }
@@ -42,55 +48,79 @@ public class Core : MelonMod
     {
         CachedFixer = null;
         NotifiedProperties.Clear();
+        CheckAfterTime = -1f;
+        AlreadyEmptyProperties.Clear();
     }
-}
 
-/// <summary>
-/// After an employee's daily wage is deducted and they're marked as paid,
-/// check if their locker has enough left for tomorrow. If not, send a
-/// text message from the Fixer (Manny) — one per property per day.
-/// </summary>
-[HarmonyPatch(typeof(Employee), nameof(Employee.SetIsPaid))]
-public static class SetIsPaidPatch
-{
-    [HarmonyPostfix]
-    public static void Postfix(Employee __instance)
+    public override void OnUpdate()
     {
-        var home = __instance.GetHome();
-        if (home == null) return;
+        if (CheckAfterTime < 0f || Time.time < CheckAfterTime) return;
+        CheckAfterTime = -1f;
 
-        // Still enough cash for tomorrow — no notification needed
-        if (home.GetCashSum() >= __instance.DailyWage) return;
+        NotifiedProperties.Clear();
+        CheckAllEmployees();
+        AlreadyEmptyProperties.Clear();
+    }
 
-        var property = __instance.AssignedProperty;
-        if (property == null) return;
+    internal static void CheckAllEmployees()
+    {
+        var employees = Object.FindObjectsOfType<Employee>();
+        if (employees == null) return;
 
-        var propertyCode = property.PropertyCode;
-        if (string.IsNullOrEmpty(propertyCode)) return;
+        foreach (var emp in employees)
+        {
+            // IsPayAvailable() calls GetHome() in native code where virtual
+            // dispatch works correctly on both Mono and IL2CPP.
+            // After wages are deducted, IsPayAvailable() == false means the
+            // locker can't cover tomorrow's wages.
+            if (emp.IsPayAvailable()) continue;
 
-        // Only one notification per property per day
-        if (!Core.NotifiedProperties.Add(propertyCode)) return;
+            var property = emp.AssignedProperty;
+            if (property == null) continue;
 
-        // Find the Fixer NPC (Manny) to send the text message
-        if (Core.CachedFixer == null)
-            Core.CachedFixer = Object.FindObjectOfType<Fixer>();
-        if (Core.CachedFixer?.MSGConversation == null) return;
+            var propertyCode = property.PropertyCode;
+            if (string.IsNullOrEmpty(propertyCode)) continue;
 
-        var propertyName = property.PropertyName;
-        var msg = string.Format(Core.MessageTemplates[Core.Rng.Next(Core.MessageTemplates.Length)], propertyName);
-        Core.CachedFixer.SendTextMessage(msg);
+            // Skip properties that were already empty before today's wages
+            if (AlreadyEmptyProperties.Contains(propertyCode)) continue;
+
+            if (!NotifiedProperties.Add(propertyCode)) continue;
+
+            if (CachedFixer == null)
+                CachedFixer = Object.FindObjectOfType<Fixer>();
+            if (CachedFixer?.MSGConversation == null) return;
+
+            var propertyName = property.PropertyName;
+            var msg = string.Format(MessageTemplates[Rng.Next(MessageTemplates.Length)], propertyName);
+            CachedFixer.SendTextMessage(msg);
+        }
     }
 }
 
 /// <summary>
-/// Reset the per-property notification tracking at the start of each new day.
+/// When sleep ends, record which properties are already unable to pay, then
+/// schedule a delayed check. The delay allows the tick cycle to process wage
+/// deductions before we check balances. Only properties that become unable
+/// to pay AFTER deduction trigger a notification.
 /// </summary>
 [HarmonyPatch(typeof(Employee), "OnSleepEnd")]
 public static class SleepEndPatch
 {
     [HarmonyPostfix]
-    public static void Postfix()
+    public static void Postfix(Employee __instance)
     {
-        Core.NotifiedProperties.Clear();
+        // Record properties that can't pay BEFORE wages are deducted.
+        // These were already empty and shouldn't trigger a new notification.
+        if (!__instance.IsPayAvailable())
+        {
+            var prop = __instance.AssignedProperty;
+            var code = prop?.PropertyCode;
+            if (!string.IsNullOrEmpty(code))
+                Core.AlreadyEmptyProperties.Add(code);
+        }
+
+        // Only schedule once per sleep (fires per employee)
+        if (Core.CheckAfterTime > 0f) return;
+        Core.CheckAfterTime = Time.time + 10f;
     }
 }
