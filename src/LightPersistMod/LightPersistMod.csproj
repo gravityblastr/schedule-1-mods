@@ -5,26 +5,4 @@
     <RootNamespace>LightPersistMod</RootNamespace>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-    <Reference Include="FishNet.Runtime">
-      <HintPath>..\libs\FishNet.Runtime.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\libs\Newtonsoft.Json.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <Reference Include="Il2CppFishNet.Runtime">
-      <HintPath>..\libs-il2cpp\Il2CppFishNet.Runtime.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Il2CppNewtonsoft.Json">
-      <HintPath>..\libs-il2cpp\Il2CppNewtonsoft.Json.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-  </ItemGroup>
-
 </Project>

@@ -1,2 +1,7 @@
 .claude/
 .work/
+.env
+packaging/staging/
+packaging/out/
+bin/
+obj/

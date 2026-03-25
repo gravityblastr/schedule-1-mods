@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Authenticate GitHub Packages NuGet feed
+        shell: bash
+        run: |
+          dotnet nuget add source "https://nuget.pkg.github.com/gravityblastr/index.json" \
+            --name github \
+            --username gravityblastr \
+            --password ${{ secrets.GITHUB_TOKEN }} \
+            --store-password-in-clear-text
+
+      - name: Restore
+        run: dotnet restore src/GravityBlastrMods.sln
+
+      - name: Build
+        run: dotnet build src/GravityBlastrMods.sln -c Release --no-restore
+
+      - name: Package per-mod zips
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          MODS="DeliveryNotificationsMod DeliveryPersistMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod SigningFreeMod DontPunchRayMod PrefsPersistMod LockerNotificationsMod UnpackMod"
+
+          mkdir -p artifacts
+
+          for mod in $MODS; do
+            mkdir -p "artifacts/$mod/IL2CPP" "artifacts/$mod/Mono"
+            cp "src/$mod/bin/Release/net6.0/$mod.dll" "artifacts/$mod/IL2CPP/"
+            cp "src/$mod/bin/Release/netstandard2.1/$mod.dll" "artifacts/$mod/Mono/"
+            cd "artifacts/$mod"
+            7z a -tzip "../../artifacts/$mod-$TAG.zip" IL2CPP/ Mono/
+            cd ../..
+          done
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*-v*.zip
+          generate_release_notes: true

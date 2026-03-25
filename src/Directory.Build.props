@@ -13,52 +13,14 @@
     <DefineConstants>$(DefineConstants);IL2CPP</DefineConstants>
   </PropertyGroup>
 
-  <!-- Shared Mono references -->
+  <!-- Mono game libs (from GitHub Packages) -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-    <Reference Include="MelonLoader">
-      <HintPath>..\libs\MelonLoader.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="0Harmony">
-      <HintPath>..\libs\0Harmony.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\libs\Assembly-CSharp.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\libs\UnityEngine.CoreModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+    <PackageReference Include="GravityBlastr.ScheduleOne.Libs.Mono" />
   </ItemGroup>
 
-  <!-- Shared IL2CPP references -->
+  <!-- IL2CPP game libs (from GitHub Packages) -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <Reference Include="MelonLoader">
-      <HintPath>..\libs-il2cpp\MelonLoader.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="0Harmony">
-      <HintPath>..\libs-il2cpp\0Harmony.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Il2CppInterop.Runtime">
-      <HintPath>..\libs-il2cpp\Il2CppInterop.Runtime.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Il2Cppmscorlib">
-      <HintPath>..\libs-il2cpp\Il2Cppmscorlib.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\libs-il2cpp\Assembly-CSharp.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\libs-il2cpp\UnityEngine.CoreModule.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
+    <PackageReference Include="GravityBlastr.ScheduleOne.Libs.IL2CPP" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <PackageId>GravityBlastr.ScheduleOne.Libs.Mono</PackageId>
+    <Authors>gravityblastr</Authors>
+    <Description>Schedule I game reference assemblies (Mono branch) for mod development. Not for redistribution.</Description>
+    <RepositoryUrl>https://github.com/gravityblastr/schedule-1-mods</RepositoryUrl>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NoBuild>true</NoBuild>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <NoWarn>NU5131</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="staging/mono/*.dll" Pack="true" PackagePath="ref/netstandard2.1" />
+  </ItemGroup>
+
+</Project>

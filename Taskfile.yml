@@ -2,6 +2,8 @@
 
 version: '3'
 
+dotenv: ['.env']
+
 vars:
   GAME_DIR: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I'
   MONO_MANAGED: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/Schedule I_Data/Managed'
@@ -11,6 +13,7 @@ vars:
   MODS_DIR: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/Mods'
   LIBS_DIR: 'src/libs'
   LIBS_IL2CPP_DIR: 'src/libs-il2cpp'
+  DECOMPILED_REPO: '.work/decompiled'
   MODS: >-
     DeliveryNotificationsMod
     DeliveryPersistMod
@@ -31,10 +34,16 @@ tasks:
       - task --list
     silent: true
 
+  restore:
+    desc: Restore NuGet packages
+    cmds:
+      - dotnet restore src/GravityBlastrMods.sln
+
   build:
     desc: Build all mods for both Mono and IL2CPP
+    deps: [restore]
     cmds:
-      - dotnet build src/GravityBlastrMods.sln -c Debug
+      - dotnet build src/GravityBlastrMods.sln -c Debug --no-restore
 
   build:mono:
     desc: Build all mods (Mono only)
@@ -89,7 +98,7 @@ tasks:
     desc: Copy Mono game DLLs to libs/ (run after installing MelonLoader)
     cmds:
       - mkdir -p {{.LIBS_DIR}}
-      - cp "{{.MONO_MANAGED}}/Assembly-CSharp.dll" "{{.MONO_MANAGED}}/UnityEngine.CoreModule.dll" "{{.MONO_MANAGED}}/UnityEngine.dll" "{{.MONO_MANAGED}}/Unity.TextMeshPro.dll" "{{.MONO_MANAGED}}/UnityEngine.UI.dll" "{{.MONO_MANAGED}}/UnityEngine.UIModule.dll" "{{.MONO_MANAGED}}/UnityEngine.InputLegacyModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextRenderingModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreTextEngineModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreFontEngineModule.dll" "{{.MONO_MANAGED}}/FishNet.Runtime.dll" "{{.MONO_MANAGED}}/Newtonsoft.Json.dll" "{{.MELONLOADER_MONO}}/MelonLoader.dll" "{{.MELONLOADER_MONO}}/0Harmony.dll" {{.LIBS_DIR}}/
+      - cp "{{.MONO_MANAGED}}/Assembly-CSharp.dll" "{{.MONO_MANAGED}}/UnityEngine.CoreModule.dll" "{{.MONO_MANAGED}}/UnityEngine.dll" "{{.MONO_MANAGED}}/Unity.TextMeshPro.dll" "{{.MONO_MANAGED}}/UnityEngine.UI.dll" "{{.MONO_MANAGED}}/UnityEngine.UIModule.dll" "{{.MONO_MANAGED}}/UnityEngine.InputLegacyModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextRenderingModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreTextEngineModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreFontEngineModule.dll" "{{.MONO_MANAGED}}/FishNet.Runtime.dll" "{{.MONO_MANAGED}}/Newtonsoft.Json.dll" "{{.MONO_MANAGED}}/ScheduleOne.Core.dll" "{{.MELONLOADER_MONO}}/MelonLoader.dll" "{{.MELONLOADER_MONO}}/0Harmony.dll" {{.LIBS_DIR}}/
       - echo "Mono libs copied."
 
   game:copy-libs:il2cpp:
@@ -138,6 +147,122 @@ tasks:
           git tag -a "v${VERSION}" -m "Schedule I v${VERSION}"
           echo "Tagged v${VERSION}."
         fi
+
+  game:update:
+    desc: "Full game update: detect branch, package libs, decompile, push"
+    env:
+      DOTNET_ROLL_FORWARD: LatestMajor
+    cmds:
+      - |
+        # 1. Detect game branch
+        if [ -f "{{.GAME_DIR}}/GameAssembly.dll" ]; then
+          BRANCH="il2cpp"
+          echo "Detected IL2CPP branch"
+        else
+          BRANCH="mono"
+          echo "Detected Mono branch"
+        fi
+
+        # 2. Read game version and convert to four-part NuGet version
+        VERSION=$(python3 -c "
+        import re
+        with open('{{.GAME_DIR}}/Schedule I_Data/globalgamemanagers', 'rb') as f:
+            data = f.read()
+        m = re.search(rb'(\d+\.\d+\.\d+[a-z]\d+)', data[1000:])
+        print(m.group().decode() if m else 'unknown', end='')
+        ")
+        NUGET_VERSION=$(python3 -c "import re,sys; print(re.sub(r'[a-z]', '.', sys.argv[1]), end='')" "$VERSION")
+        echo "Game version: $VERSION (NuGet: $NUGET_VERSION)"
+
+        # 3. Copy libs to packaging staging area
+        STAGING="packaging/staging"
+        rm -rf "$STAGING"
+
+        if [ "$BRANCH" = "mono" ]; then
+          mkdir -p "$STAGING/mono"
+          cp "{{.MONO_MANAGED}}/Assembly-CSharp.dll" \
+             "{{.MONO_MANAGED}}/UnityEngine.CoreModule.dll" \
+             "{{.MONO_MANAGED}}/UnityEngine.dll" \
+             "{{.MONO_MANAGED}}/Unity.TextMeshPro.dll" \
+             "{{.MONO_MANAGED}}/UnityEngine.UI.dll" \
+             "{{.MONO_MANAGED}}/UnityEngine.UIModule.dll" \
+             "{{.MONO_MANAGED}}/UnityEngine.InputLegacyModule.dll" \
+             "{{.MONO_MANAGED}}/UnityEngine.TextRenderingModule.dll" \
+             "{{.MONO_MANAGED}}/UnityEngine.TextCoreTextEngineModule.dll" \
+             "{{.MONO_MANAGED}}/UnityEngine.TextCoreFontEngineModule.dll" \
+             "{{.MONO_MANAGED}}/FishNet.Runtime.dll" \
+             "{{.MONO_MANAGED}}/Newtonsoft.Json.dll" \
+             "{{.MONO_MANAGED}}/ScheduleOne.Core.dll" \
+             "{{.MELONLOADER_MONO}}/MelonLoader.dll" \
+             "{{.MELONLOADER_MONO}}/0Harmony.dll" \
+             "$STAGING/mono/"
+          PACK_CSPROJ="packaging/GravityBlastr.ScheduleOne.Libs.Mono.csproj"
+        else
+          mkdir -p "$STAGING/il2cpp"
+          cp "{{.MELONLOADER_IL2CPP}}/MelonLoader.dll" \
+             "{{.MELONLOADER_IL2CPP}}/0Harmony.dll" \
+             "{{.MELONLOADER_IL2CPP}}/Il2CppInterop.Runtime.dll" \
+             "{{.MELONLOADER_IL2CPP}}/Il2CppInterop.Common.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/Assembly-CSharp.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.CoreModule.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.UI.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.UIModule.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.InputLegacyModule.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/Unity.TextMeshPro.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextRenderingModule.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextCoreTextEngineModule.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextCoreFontEngineModule.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/Il2CppFishNet.Runtime.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/Il2CppNewtonsoft.Json.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/Il2Cppmscorlib.dll" \
+             "{{.IL2CPP_ASSEMBLIES}}/Il2CppScheduleOne.Core.dll" \
+             "$STAGING/il2cpp/"
+          PACK_CSPROJ="packaging/GravityBlastr.ScheduleOne.Libs.IL2CPP.csproj"
+        fi
+        echo "Libs staged for $BRANCH"
+
+        # 4. Pack NuGet package
+        rm -rf packaging/out
+        dotnet pack "$PACK_CSPROJ" -o packaging/out /p:Version="$NUGET_VERSION"
+        echo "Packed NuGet package"
+
+        # 5. Push to GitHub Packages
+        NUPKG=$(ls packaging/out/*.nupkg)
+        dotnet nuget push "$NUPKG" --source "https://nuget.pkg.github.com/gravityblastr/index.json" --api-key "$GITHUB_TOKEN" --skip-duplicate
+        echo "Pushed $NUPKG to GitHub Packages"
+
+        # 6. Switch decompiled repo to correct branch, then decompile
+        cd {{.DECOMPILED_REPO}}
+        git checkout -f "$BRANCH" 2>/dev/null || git checkout --orphan "$BRANCH"
+        cd -
+        if [ "$BRANCH" = "mono" ]; then
+          ASM_DLL="{{.MONO_MANAGED}}/Assembly-CSharp.dll"
+        else
+          ASM_DLL="{{.IL2CPP_ASSEMBLIES}}/Assembly-CSharp.dll"
+        fi
+        rm -rf {{.DECOMPILED_REPO}}/Assembly-CSharp
+        ilspycmd "$ASM_DLL" -p -o {{.DECOMPILED_REPO}}/Assembly-CSharp
+        echo "Decompiled Assembly-CSharp"
+
+        # 7. Commit and tag in decompiled repo
+        cd {{.DECOMPILED_REPO}}
+        git add -A
+        if git diff --cached --quiet; then
+          echo "No changes from previous decompile."
+        else
+          git commit -m "Decompile Assembly-CSharp from Schedule I v${VERSION} ($BRANCH)"
+        fi
+        TAG="v${NUGET_VERSION}-${BRANCH}"
+        if [ -z "$(git tag -l "$TAG")" ]; then
+          git tag -a "$TAG" -m "Schedule I v${VERSION} ($BRANCH)"
+          echo "Tagged $TAG"
+        else
+          echo "Tag $TAG already exists."
+        fi
+        git push origin "$BRANCH" --tags
+        echo ""
+        echo "Done! Update Directory.Packages.props to version $NUGET_VERSION"
 
   game:launch:
     desc: Launch Schedule I via Steam

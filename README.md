@@ -1,104 +1,57 @@
 # GravityBlastrMods
 
-A collection of mods for [Schedule I](https://store.steampowered.com/app/3164500/Schedule_I/) using [MelonLoader](https://melonwiki.xyz/) and Harmony.
+A collection of mods for [Schedule I](https://store.steampowered.com/app/3164500/Schedule_I/) using [MelonLoader](https://melonwiki.xyz/).
 
 > Supports both the **Mono** and **IL2CPP** branches of the game.
 
-## Quality of Life
+## Mods
 
-### DeliveryNotificationsMod
-Sends in-game phone notifications when deliveries arrive or complete. Includes the store name, destination, and loading dock in the message.
+All mods can be installed separately or together. All are savegame-safe — they don't touch core save data, so you can remove them at any time without breaking anything.
 
-### DeliveryPersistMod
-Remembers your delivery order settings (destination, loading dock, item quantities) after deliveries and across saves. No more re-entering orders every time you load the game, and your choices will still be present after you order.
+| Mod | What it does |
+|-----|-------------|
+| **DeliveryNotificationsMod** | Sends phone notifications when deliveries arrive or complete, with store name, destination, and loading dock. |
+| **DeliveryPersistMod** | Remembers your delivery order settings (destination, dock, quantities) after deliveries and across saves. |
+| **DontPunchRayMod** | Adds a sell option to Ray and Jeremy's dialog — no more punching required. |
+| **IlluminationMod** | Better nighttime visibility: 2x flashlight range, 2x headlight range, 4x reverse light range, and sticky reverse lights. |
+| **LaunderMaxMod** | Auto-selects the maximum amount when opening the laundering interface. |
+| **LaunderScaleMod** | Scales laundering capacity with player rank — up to 3x base ($60k/day instead of $20k). |
+| **LightPersistMod** | Saves flashlight and headlight state across game loads. |
+| **LockerNotificationsMod** | Texts you when employee pay depletes a locker below tomorrow's need. One message per property per day. |
+| **PrefsPersistMod** | Fixes settings (like graphics etc) not persisting between launches on certain system locales. |
+| **SigningFreeMod** | Fixes the "signing free" typo — it's "signing fee". |
+| **UnpackMod** | Lets you unpack bricks at a packaging station even when packaging is in the slot. |
 
-### LaunderMaxMod
-Auto-selects the maximum amount when opening the laundering interface, so you don't have to drag the slider every time.
-
-### LightPersistMod
-Saves and restores the state of your flashlight and vehicle headlights across game loads. If you left your headlights on when you saved, they'll be on when you load.
-
-### PrefsPersistMod
-Fixes settings not persisting between launches. The game's settings loader crashes on certain system locales, silently losing all your preferences. This mod patches the locale bug, restores saved settings on startup, and flushes changes to disk immediately so they survive crashes too.
-
-### SigningFreeMod
-Fixes the "signing free" typo in the game — it should be "signing fee". Patches the contacts app, dialogue text, and dialogue choices.
-
-## Gameplay
-
-### LockerNotificationsMod
-Sends a text message from Manny (the fixer) when employee pay depletes a locker below what's needed for tomorrow. One message per property per day — if five lockers at the warehouse all run dry, you get one text, not five.
-
-### DontPunchRayMod
-You don't have to punch store owners anymore to sell to them. The sell option is now included in their store dialog choices.
-
-### IlluminationMod
-Improves lighting for better nighttime visibility:
-- **Flashlight**: 2x range
-- **Vehicle headlights**: 2x range
-- **Reverse lights**: 4x range, 3x intensity, converted from point lights to directional spots
-- **Sticky reverse lights**: reverse lights stay on after you stop reversing until you shift to drive
-
-### LaunderScaleMod
-Scales laundering capacity based on player rank. Starting at Peddler I, capacity increases by 5% per rank tier, up to 3x the base capacity. No more $20,000/day cap - it's now $60,000/day.
-
-### UnpackMod
-Allows unpacking bricks at a packaging station even when there's packaging (baggies/jars) in the packaging slot. Unpacking a brick only produces loose product — it doesn't use the packaging slot, so the game's restriction is unnecessary.
-
-## Prerequisites
+## Requirements
 
 - [Schedule I](https://store.steampowered.com/app/3164500/Schedule_I/)
 - [MelonLoader](https://melonwiki.xyz/) installed for Schedule I
-- [.NET SDK](https://dotnet.microsoft.com/download) (for building from source)
-- [Task](https://taskfile.dev/) (optional, for build/deploy commands)
 
-### Game branches
+## Installation
 
-The game ships as **IL2CPP** (default). To switch to **Mono**, right-click Schedule I in Steam > Properties > Betas > select **mono**. These mods support both branches — the build system and deploy task handle the differences automatically.
-
-## Installing (prebuilt)
-
-Download the `.dll` files from [Releases](../../releases) and drop them into your game's `Mods` folder:
+Download the `.zip` for each mod you want from [Releases](../../releases). Each zip contains both IL2CPP and Mono DLLs — pick the one matching your game branch and drop it into your `Mods` folder:
 
 ```
 C:\Program Files (x86)\Steam\steamapps\common\Schedule I\Mods\
 ```
 
-## Building from source
+Not sure which branch you're on? The game ships as **IL2CPP** by default. If you haven't changed anything in Steam betas, use the IL2CPP DLL.
 
-1. Clone this repo
-2. Copy required game DLLs:
-   ```bash
-   task game:copy-libs:mono      # Mono branch
-   task game:copy-libs:il2cpp    # IL2CPP branch (run game once with MelonLoader first)
-   ```
+## Uninstalling
 
-3. Build all mods (both targets):
-   ```bash
-   task build
-   ```
+Delete the mod's `.dll` from your `Mods` folder. That's it — no save cleanup needed.
 
-4. Deploy to your game (auto-detects Mono vs IL2CPP):
-   ```bash
-   task deploy
-   ```
+## Philosophy
 
-Or build and deploy in one step:
-```bash
-task build-deploy
-```
+- Minimal, single-purpose mods that do one thing well
+- No malware, tracking, ads, mining, or any bullshit like that. Ever.
+- Open source, open book
+- Vibe coded, human approved
+- This game is great and you should buy it
 
-### Other tasks
+## Contributing
 
-| Command | Description |
-|---------|-------------|
-| `task build:mono` | Build Mono target only |
-| `task build:il2cpp` | Build IL2CPP target only |
-| `task deploy:mono` | Deploy Mono DLLs explicitly |
-| `task deploy:il2cpp` | Deploy IL2CPP DLLs explicitly |
-| `task game:clean` | Remove mod DLLs from the game's Mods folder |
-| `task game:check` | Verify game and MelonLoader installation, show active branch |
-| `task game:decompile` | Decompile `Assembly-CSharp.dll` (requires [ILSpy CLI](https://github.com/icsharpcode/ILSpy)) |
+See [CONTRIBUTING.md](CONTRIBUTING.md) for build instructions and development setup.
 
 ## License
 
