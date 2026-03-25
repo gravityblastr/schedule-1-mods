@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -29,7 +31,6 @@ jobs:
         run: dotnet build src/GravityBlastrMods.sln -c Release
 
       - name: Package per-mod zips
-        shell: bash
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
           MODS="DeliveryNotificationsMod DeliveryPersistMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod SigningFreeMod DontPunchRayMod PrefsPersistMod LockerNotificationsMod UnpackMod"
@@ -45,8 +46,36 @@ jobs:
             cd ../..
           done
 
+      - name: Generate release notes
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${TAG}$" | head -1)
+
+          echo "## Changed mods" > notes.md
+
+          if [ -n "$PREV_TAG" ]; then
+            MODS_CHANGED=$(git diff --name-only "$PREV_TAG"..HEAD -- src/ \
+              | cut -d/ -f2 | sort -u \
+              | grep -vE '^(Directory\.|nuget\.|GravityBlastr)')
+            if [ -n "$MODS_CHANGED" ]; then
+              for mod in $MODS_CHANGED; do
+                echo "- **$mod**" >> notes.md
+              done
+            else
+              echo "- Infrastructure/build changes only" >> notes.md
+            fi
+            echo "" >> notes.md
+            echo "## Commits" >> notes.md
+            git log --pretty=format:"- %s" "$PREV_TAG"..HEAD >> notes.md
+            echo "" >> notes.md
+            echo "" >> notes.md
+            echo "**Full changelog**: https://github.com/gravityblastr/schedule-1-mods/compare/${PREV_TAG}...${TAG}" >> notes.md
+          else
+            echo "- Initial release" >> notes.md
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/*-v*.zip
-          generate_release_notes: true
+          body_path: notes.md
