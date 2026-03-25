@@ -40,12 +40,20 @@ public static class GetStatePatch
         if (mode != PackagingStation.EMode.Unpackage) return;
         if (__result != PackagingStation.EState.PackageSlotFull) return;
 
+#if IL2CPP
+        var product = __instance.OutputSlot.ItemInstance?.TryCast<ProductItemInstance>();
+#else
         var product = __instance.OutputSlot.ItemInstance as ProductItemInstance;
+#endif
         if (product?.AppliedPackaging?.ID != "brick") return;
 
         // Brick doesn't use the packaging slot — only check product slot capacity
         int quantity = product.AppliedPackaging.Quantity;
+#if IL2CPP
+        var copy = __instance.OutputSlot.ItemInstance.GetCopy(1)?.TryCast<ProductItemInstance>();
+#else
         var copy = __instance.OutputSlot.ItemInstance.GetCopy(1) as ProductItemInstance;
+#endif
         copy!.SetPackaging(null);
 
         __result = __instance.ProductSlot.GetCapacityForItem(copy) < quantity
