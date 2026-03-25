@@ -25,11 +25,8 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
-      - name: Restore
-        run: dotnet restore src/GravityBlastrMods.sln
-
       - name: Build
-        run: dotnet build src/GravityBlastrMods.sln -c Release --no-restore
+        run: dotnet build src/GravityBlastrMods.sln -c Release
 
       - name: Package per-mod zips
         shell: bash
