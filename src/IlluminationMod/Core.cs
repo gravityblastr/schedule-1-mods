@@ -45,8 +45,12 @@ public class Core : MelonMod
         [HarmonyPostfix]
         public static void Postfix(Phone __instance)
         {
+#if IL2CPP
+            var flashlightGO = __instance.PhoneFlashlight;
+#else
             var flashlightGO = Traverse.Create(__instance)
                 .Field("PhoneFlashlight").GetValue<GameObject>();
+#endif
             if (flashlightGO == null) return;
 
             var light = flashlightGO.GetComponentInChildren<Light>(true);
@@ -138,7 +142,11 @@ public class Core : MelonMod
         private static void SetReverseLights(VehicleLights vl, bool on)
         {
             // Sync the game's internal tracking flag so UpdateVisuals doesn't fight us
+#if IL2CPP
+            vl.reverseLightsApplied = on;
+#else
             Traverse.Create(vl).Field("reverseLightsApplied").SetValue(on);
+#endif
 
             if (vl.reverseLightMeshes != null)
             {

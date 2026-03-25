@@ -82,3 +82,15 @@ These require additional access (GitHub Packages write, private repos):
 |---------|-------------|
 | `task game:update` | Detect branch, package game libs as NuGet, decompile, push |
 | `task game:decompile` | Decompile `Assembly-CSharp.dll` (requires [ILSpy CLI](https://github.com/icsharpcode/ILSpy)) |
+
+### When a new game version comes out
+
+1. **Update IL2CPP first.** Make sure Steam is on the default (IL2CPP) branch and launch the game once with MelonLoader so `Il2CppAssemblies/` is regenerated.
+2. Run `task game:update`. This will:
+   - Detect the game version (e.g. `0.4.5f1`)
+   - Package the IL2CPP libs and push to GitHub Packages as `0.4.5.1`
+   - Decompile Assembly-CSharp and commit/tag the `il2cpp` branch of `schedule-1-decompiled`
+3. **Switch to Mono** in Steam (Properties > Betas > mono), then run `task game:update` again for the Mono side.
+4. **Update the version** in `src/Directory.Packages.props` to the new NuGet version (e.g. `0.4.5.1`).
+5. **Check for breaking changes.** The decompiled repo (`schedule-1-decompiled`) tracks diffs between game versions — review the changes on each branch to see what moved, renamed, or disappeared. This is the fastest way to find what needs updating in mod code.
+6. **Build and test.** `task build` — fix any compilation errors, then deploy and test in-game.
