@@ -39,7 +39,7 @@ Not sure which branch you're on? The game ships as **IL2CPP** by default. If you
 
 ### Versioning
 
-Release versions look like `v0.4.4.10.2` — the first four numbers are the game version it was built and tested against (e.g. `0.4.4f10` in this case), and the last number is the mod release. Mods may work with other game versions, but only the listed version has been tested.
+Releases use [semantic versioning](https://semver.org/) (e.g. `v1.0.0`). Each release notes which game version it was built and tested against. Mods may work with other game versions, but only the listed version has been tested.
 
 ## Uninstalling
 

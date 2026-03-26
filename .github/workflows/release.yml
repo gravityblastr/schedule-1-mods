@@ -51,12 +51,18 @@ jobs:
           TAG="${GITHUB_REF#refs/tags/}"
           PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${TAG}$" | head -1)
 
-          echo "## Changed mods" > notes.md
+          # Read game version from Directory.Packages.props (e.g. 0.4.4.10 -> 0.4.4f10)
+          NUGET_VER=$(grep -oP 'Version="\K[^"]+' src/Directory.Packages.props | head -1)
+          GAME_VER=$(echo "$NUGET_VER" | sed 's/\.\([0-9]*\)$/f\1/')
+
+          echo "Built and tested against v${GAME_VER} of the game." > notes.md
+          echo "" >> notes.md
 
           if [ -n "$PREV_TAG" ]; then
             MODS_CHANGED=$(git diff --name-only "$PREV_TAG"..HEAD -- src/ \
               | cut -d/ -f2 | sort -u \
               | grep -vE '^(Directory\.|nuget\.|GravityBlastr)')
+            echo "## Changed mods" >> notes.md
             if [ -n "$MODS_CHANGED" ]; then
               for mod in $MODS_CHANGED; do
                 echo "- **$mod**" >> notes.md
@@ -71,7 +77,12 @@ jobs:
             echo "" >> notes.md
             echo "**Full changelog**: https://github.com/gravityblastr/schedule-1-mods/compare/${PREV_TAG}...${TAG}" >> notes.md
           else
-            echo "- Initial release" >> notes.md
+            echo "## Initial release" >> notes.md
+            echo "" >> notes.md
+            echo "All mods included:" >> notes.md
+            for mod in DeliveryNotificationsMod DeliveryPersistMod DontPunchRayMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod LockerNotificationsMod PrefsPersistMod SigningFreeMod UnpackMod; do
+              echo "- **$mod**" >> notes.md
+            done
           fi
 
       - name: Create GitHub Release
