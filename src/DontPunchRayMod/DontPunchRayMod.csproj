@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>DontPunchRayMod</AssemblyName>
+    <AssemblyName>GravityBlastr.DontPunchRayMod</AssemblyName>
     <RootNamespace>DontPunchRayMod</RootNamespace>
   </PropertyGroup>
 

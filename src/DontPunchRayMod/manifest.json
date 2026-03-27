@@ -1,0 +1,7 @@
+{
+  "name": "GravityBlastr Doesn't Punch Ray",
+  "version_number": "0.0.0",
+  "website_url": "https://github.com/gravityblastr/schedule-1-mods",
+  "description": "Adds a sell option to Ray and Jeremy's dialog — no more punching required.",
+  "dependencies": ["LavaGang-MelonLoader-0.6.6", "the_croods-SwapperPlugin-1.2.2"]
+}

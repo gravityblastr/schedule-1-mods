@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>PrefsPersistMod</AssemblyName>
+    <AssemblyName>GravityBlastr.PrefsPersistMod</AssemblyName>
     <RootNamespace>PrefsPersistMod</RootNamespace>
   </PropertyGroup>
 

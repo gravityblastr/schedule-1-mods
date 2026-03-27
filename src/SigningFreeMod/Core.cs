@@ -9,7 +9,7 @@ using ScheduleOne.Dialogue;
 using ScheduleOne.UI.Phone.ContactsApp;
 #endif
 
-[assembly: MelonInfo(typeof(SigningFreeMod.Core), "SigningFreeMod", "1.0.0", "gravityblastr")]
+[assembly: MelonInfo(typeof(SigningFreeMod.Core), "GravityBlastr.SigningFreeMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace SigningFreeMod;

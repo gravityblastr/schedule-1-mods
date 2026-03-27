@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>DeliveryNotificationsMod</AssemblyName>
+    <AssemblyName>GravityBlastr.DeliveryNotificationsMod</AssemblyName>
     <RootNamespace>DeliveryNotificationsMod</RootNamespace>
   </PropertyGroup>
 

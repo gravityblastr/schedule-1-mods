@@ -2,10 +2,6 @@
 bin/
 obj/
 
-## Game DLLs — copy locally with: task copy-libs-mono / task copy-libs-il2cpp
-libs/
-libs-il2cpp/
-
 ## IDE
 .vs/
 .vscode/

@@ -11,7 +11,7 @@ using ScheduleOne.Dialogue;
 using ScheduleOne.Economy;
 #endif
 
-[assembly: MelonInfo(typeof(DontPunchRayMod.Core), "DontPunchRayMod", "1.0.0", "gravityblastr")]
+[assembly: MelonInfo(typeof(DontPunchRayMod.Core), "GravityBlastr.DontPunchRayMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace DontPunchRayMod;

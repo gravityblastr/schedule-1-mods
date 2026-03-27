@@ -22,7 +22,7 @@ using ScheduleOne.UI;
 using ScheduleOne.UI.Phone.Delivery;
 #endif
 
-[assembly: MelonInfo(typeof(DeliveryNotificationsMod.Core), "DeliveryNotificationsMod", "1.0.0", "gravityblastr")]
+[assembly: MelonInfo(typeof(DeliveryNotificationsMod.Core), "GravityBlastr.DeliveryNotificationsMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace DeliveryNotificationsMod;

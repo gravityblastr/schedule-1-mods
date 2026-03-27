@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>LockerNotificationsMod</AssemblyName>
+    <AssemblyName>GravityBlastr.LockerNotificationsMod</AssemblyName>
     <RootNamespace>LockerNotificationsMod</RootNamespace>
   </PropertyGroup>
 

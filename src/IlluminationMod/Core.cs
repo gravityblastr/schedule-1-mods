@@ -13,7 +13,7 @@ using ScheduleOne.UI.Phone;
 using ScheduleOne.Vehicles;
 #endif
 
-[assembly: MelonInfo(typeof(IlluminationMod.Core), "IlluminationMod", "1.0.0", "gravityblastr")]
+[assembly: MelonInfo(typeof(IlluminationMod.Core), "GravityBlastr.IlluminationMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace IlluminationMod;

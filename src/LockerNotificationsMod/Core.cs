@@ -11,7 +11,7 @@ using ScheduleOne.Employees;
 using ScheduleOne.NPCs.CharacterClasses;
 #endif
 
-[assembly: MelonInfo(typeof(LockerNotificationsMod.Core), "GravityBlastr Locker Notifications", "1.0.0", "gravityblastr")]
+[assembly: MelonInfo(typeof(LockerNotificationsMod.Core), "GravityBlastr.LockerNotificationsMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace LockerNotificationsMod;

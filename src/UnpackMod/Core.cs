@@ -9,7 +9,7 @@ using ScheduleOne.ObjectScripts;
 using ScheduleOne.Product;
 #endif
 
-[assembly: MelonInfo(typeof(UnpackMod.Core), "UnpackMod", "1.0.0", "gravityblastr")]
+[assembly: MelonInfo(typeof(UnpackMod.Core), "GravityBlastr.UnpackMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace UnpackMod;

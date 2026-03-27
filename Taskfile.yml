@@ -11,8 +11,6 @@ vars:
   MELONLOADER_IL2CPP: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/MelonLoader/net6'
   IL2CPP_ASSEMBLIES: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/MelonLoader/Il2CppAssemblies'
   MODS_DIR: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/Mods'
-  LIBS_DIR: 'src/libs'
-  LIBS_IL2CPP_DIR: 'src/libs-il2cpp'
   DECOMPILED_REPO: '.work/decompiled'
   MODS: >-
     DeliveryNotificationsMod
@@ -77,7 +75,7 @@ tasks:
     cmds:
       - task: deploy:clean
       - mkdir -p "{{.MODS_DIR}}"
-      - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/netstandard2.1/$mod.dll" "{{.MODS_DIR}}/"; done
+      - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/netstandard2.1/GravityBlastr.$mod.dll" "{{.MODS_DIR}}/"; done
       - echo "Deployed (Mono) to {{.MODS_DIR}}"
 
   deploy:il2cpp:
@@ -85,7 +83,7 @@ tasks:
     cmds:
       - task: deploy:clean
       - mkdir -p "{{.MODS_DIR}}"
-      - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/net6.0/$mod.dll" "{{.MODS_DIR}}/"; done
+      - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/net6.0/GravityBlastr.$mod.dll" "{{.MODS_DIR}}/"; done
       - echo "Deployed (IL2CPP) to {{.MODS_DIR}}"
 
   build-deploy:
@@ -93,60 +91,6 @@ tasks:
     cmds:
       - task: build
       - task: deploy
-
-  game:copy-libs:mono:
-    desc: Copy Mono game DLLs to libs/ (run after installing MelonLoader)
-    cmds:
-      - mkdir -p {{.LIBS_DIR}}
-      - cp "{{.MONO_MANAGED}}/Assembly-CSharp.dll" "{{.MONO_MANAGED}}/UnityEngine.CoreModule.dll" "{{.MONO_MANAGED}}/UnityEngine.dll" "{{.MONO_MANAGED}}/Unity.TextMeshPro.dll" "{{.MONO_MANAGED}}/UnityEngine.UI.dll" "{{.MONO_MANAGED}}/UnityEngine.UIModule.dll" "{{.MONO_MANAGED}}/UnityEngine.InputLegacyModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextRenderingModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreTextEngineModule.dll" "{{.MONO_MANAGED}}/UnityEngine.TextCoreFontEngineModule.dll" "{{.MONO_MANAGED}}/FishNet.Runtime.dll" "{{.MONO_MANAGED}}/Newtonsoft.Json.dll" "{{.MONO_MANAGED}}/ScheduleOne.Core.dll" "{{.MELONLOADER_MONO}}/MelonLoader.dll" "{{.MELONLOADER_MONO}}/0Harmony.dll" {{.LIBS_DIR}}/
-      - echo "Mono libs copied."
-
-  game:copy-libs:il2cpp:
-    desc: Copy IL2CPP game DLLs to libs-il2cpp/ (run after first IL2CPP game launch)
-    preconditions:
-      - sh: test -d "{{.IL2CPP_ASSEMBLIES}}"
-        msg: "Il2CppAssemblies not found — launch the IL2CPP game with MelonLoader once first"
-    cmds:
-      - mkdir -p {{.LIBS_IL2CPP_DIR}}
-      - cp "{{.MELONLOADER_IL2CPP}}/MelonLoader.dll" "{{.MELONLOADER_IL2CPP}}/0Harmony.dll" "{{.MELONLOADER_IL2CPP}}/Il2CppInterop.Runtime.dll" "{{.MELONLOADER_IL2CPP}}/Il2CppInterop.Common.dll" "{{.IL2CPP_ASSEMBLIES}}/Assembly-CSharp.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.CoreModule.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.UI.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.UIModule.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.InputLegacyModule.dll" "{{.IL2CPP_ASSEMBLIES}}/Unity.TextMeshPro.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextRenderingModule.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextCoreTextEngineModule.dll" "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextCoreFontEngineModule.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2CppFishNet.Runtime.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2CppNewtonsoft.Json.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2Cppmscorlib.dll" "{{.IL2CPP_ASSEMBLIES}}/Il2CppScheduleOne.Core.dll" {{.LIBS_IL2CPP_DIR}}/
-      - echo "IL2CPP libs copied."
-
-  game:decompile:
-    desc: Decompile Assembly-CSharp.dll, commit, and tag with game version
-    env:
-      DOTNET_ROLL_FORWARD: LatestMajor
-    cmds:
-      - |
-        if [ -f "{{.MONO_MANAGED}}/Assembly-CSharp.dll" ]; then
-          echo "Using Mono Assembly-CSharp.dll"
-        else
-          echo "Mono Assembly-CSharp.dll not found. Switch to the Mono branch in Steam before decompiling."
-          exit 1
-        fi
-        rm -rf .work/decompiled/Assembly-CSharp
-        ilspycmd "{{.MONO_MANAGED}}/Assembly-CSharp.dll" -p -o .work/decompiled/Assembly-CSharp
-      - |
-        cd .work/decompiled
-        VERSION=$(python3 -c "
-        import re
-        with open('C:/Program Files (x86)/Steam/steamapps/common/Schedule I/Schedule I_Data/globalgamemanagers', 'rb') as f:
-            data = f.read()
-        m = re.search(rb'(\d+\.\d+\.\d+[a-z]\d+)', data[1000:])
-        print(m.group().decode() if m else 'unknown', end='')
-        ")
-        echo "Detected game version: $VERSION"
-        git add -A
-        if git diff --cached --quiet; then
-          echo "No changes from previous decompile."
-        else
-          git commit -m "Decompile Assembly-CSharp from Schedule I v${VERSION}"
-        fi
-        if [ -n "$(git tag -l "v${VERSION}")" ]; then
-          echo "Tag v${VERSION} already exists."
-        else
-          git tag -a "v${VERSION}" -m "Schedule I v${VERSION}"
-          echo "Tagged v${VERSION}."
-        fi
 
   game:update:
     desc: "Full game update: detect branch, package libs, decompile, push"
@@ -273,7 +217,7 @@ tasks:
   deploy:clean:
     desc: Remove our mod DLLs from game Mods folder
     cmds:
-      - for mod in {{.MODS}}; do rm -f "{{.MODS_DIR}}/$mod.dll"; done
+      - for mod in {{.MODS}}; do rm -f "{{.MODS_DIR}}/GravityBlastr.$mod.dll"; done
       - echo "Cleaned our mods from {{.MODS_DIR}}"
 
   game:open:

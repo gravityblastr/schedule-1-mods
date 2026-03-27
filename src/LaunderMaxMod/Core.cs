@@ -10,7 +10,7 @@ using TMPro;
 using ScheduleOne.UI;
 #endif
 
-[assembly: MelonInfo(typeof(LaunderMaxMod.Core), "LaunderMaxMod", "1.0.0", "gravityblastr")]
+[assembly: MelonInfo(typeof(LaunderMaxMod.Core), "GravityBlastr.LaunderMaxMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace LaunderMaxMod;

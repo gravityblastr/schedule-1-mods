@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>SigningFreeMod</AssemblyName>
+    <AssemblyName>GravityBlastr.SigningFreeMod</AssemblyName>
     <RootNamespace>SigningFreeMod</RootNamespace>
   </PropertyGroup>
 

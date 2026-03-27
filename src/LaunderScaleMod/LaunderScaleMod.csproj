@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>LaunderScaleMod</AssemblyName>
+    <AssemblyName>GravityBlastr.LaunderScaleMod</AssemblyName>
     <RootNamespace>LaunderScaleMod</RootNamespace>
   </PropertyGroup>
 

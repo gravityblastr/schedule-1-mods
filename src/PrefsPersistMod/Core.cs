@@ -10,7 +10,7 @@ using Il2CppScheduleOne.DevUtilities;
 using ScheduleOne.DevUtilities;
 #endif
 
-[assembly: MelonInfo(typeof(PrefsPersistMod.Core), "PrefsPersistMod", "1.0.0", "gravityblastr")]
+[assembly: MelonInfo(typeof(PrefsPersistMod.Core), "GravityBlastr.PrefsPersistMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace PrefsPersistMod;

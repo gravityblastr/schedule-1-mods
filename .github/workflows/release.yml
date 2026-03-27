@@ -39,8 +39,8 @@ jobs:
 
           for mod in $MODS; do
             mkdir -p "artifacts/$mod/IL2CPP" "artifacts/$mod/Mono"
-            cp "src/$mod/bin/Release/net6.0/$mod.dll" "artifacts/$mod/IL2CPP/"
-            cp "src/$mod/bin/Release/netstandard2.1/$mod.dll" "artifacts/$mod/Mono/"
+            cp "src/$mod/bin/Release/net6.0/GravityBlastr.$mod.dll" "artifacts/$mod/IL2CPP/"
+            cp "src/$mod/bin/Release/netstandard2.1/GravityBlastr.$mod.dll" "artifacts/$mod/Mono/"
             cd "artifacts/$mod"
             7z a -tzip "../../artifacts/$mod-$TAG.zip" IL2CPP/ Mono/
             cd ../..

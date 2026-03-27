@@ -19,7 +19,7 @@ using ScheduleOne.Property;
 using ScheduleOne.UI;
 #endif
 
-[assembly: MelonInfo(typeof(LaunderScaleMod.Core), "LaunderScaleMod", "1.0.0", "gravityblastr")]
+[assembly: MelonInfo(typeof(LaunderScaleMod.Core), "GravityBlastr.LaunderScaleMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace LaunderScaleMod;

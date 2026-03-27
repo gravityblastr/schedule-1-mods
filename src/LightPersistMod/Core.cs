@@ -23,7 +23,7 @@ using ScheduleOne.Vehicles;
 using ScheduleOne.Vision;
 #endif
 
-[assembly: MelonInfo(typeof(LightPersistMod.Core), "LightPersistMod", "1.0.0", "gravityblastr")]
+[assembly: MelonInfo(typeof(LightPersistMod.Core), "GravityBlastr.LightPersistMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace LightPersistMod;

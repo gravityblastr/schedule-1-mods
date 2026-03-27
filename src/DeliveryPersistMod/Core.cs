@@ -20,7 +20,7 @@ using ScheduleOne.UI.Phone.Delivery;
 using SProperty = ScheduleOne.Property.Property;
 #endif
 
-[assembly: MelonInfo(typeof(DeliveryPersistMod.Core), "DeliveryPersistMod", "1.0.0", "gravityblastr")]
+[assembly: MelonInfo(typeof(DeliveryPersistMod.Core), "GravityBlastr.DeliveryPersistMod", "1.0.0", "gravityblastr")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace DeliveryPersistMod;
