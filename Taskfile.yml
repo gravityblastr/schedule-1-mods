@@ -14,7 +14,6 @@ vars:
   DECOMPILED_REPO: '.work/decompiled'
   MODS: >-
     DeliveryNotificationsMod
-    DeliveryPersistMod
     IlluminationMod
     LaunderMaxMod
     LaunderScaleMod

@@ -10,8 +10,7 @@ All mods can be installed separately or together. All are savegame-safe — they
 
 | Mod | What it does |
 |-----|-------------|
-| **DeliveryNotificationsMod** | Sends phone notifications when deliveries arrive or complete, with store name, destination, and loading dock. |
-| **DeliveryPersistMod** | Remembers your delivery order settings (destination, dock, quantities) after deliveries and across saves. |
+| **DeliveryNotificationsMod** | Replaces the game's basic delivery arrival notification with a detailed version (store, destination, dock) and adds completion notifications. |
 | **DontPunchRayMod** | Adds a sell option to Ray and Jeremy's dialog — no more punching required. |
 | **IlluminationMod** | Better nighttime visibility: 2x flashlight range, 2x headlight range, 4x reverse light range, and sticky reverse lights. |
 | **LaunderMaxMod** | Auto-selects the maximum amount when opening the laundering interface. |

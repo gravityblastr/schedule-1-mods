@@ -33,7 +33,7 @@ jobs:
       - name: Package per-mod zips
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
-          MODS="DeliveryNotificationsMod DeliveryPersistMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod SigningFreeMod DontPunchRayMod PrefsPersistMod LockerNotificationsMod UnpackMod"
+          MODS="DeliveryNotificationsMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod SigningFreeMod DontPunchRayMod PrefsPersistMod LockerNotificationsMod UnpackMod"
 
           mkdir -p artifacts
 
@@ -80,7 +80,7 @@ jobs:
             echo "## Initial release" >> notes.md
             echo "" >> notes.md
             echo "All mods included:" >> notes.md
-            for mod in DeliveryNotificationsMod DeliveryPersistMod DontPunchRayMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod LockerNotificationsMod PrefsPersistMod SigningFreeMod UnpackMod; do
+            for mod in DeliveryNotificationsMod DontPunchRayMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod LockerNotificationsMod PrefsPersistMod SigningFreeMod UnpackMod; do
               echo "- **$mod**" >> notes.md
             done
           fi

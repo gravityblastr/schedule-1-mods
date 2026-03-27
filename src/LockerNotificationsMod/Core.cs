@@ -1,13 +1,17 @@
+using System;
 using System.Collections.Generic;
-using HarmonyLib;
 using MelonLoader;
 using UnityEngine;
 
 #if IL2CPP
+using Il2CppScheduleOne.DevUtilities;
 using Il2CppScheduleOne.Employees;
+using Il2CppScheduleOne.GameTime;
 using Il2CppScheduleOne.NPCs.CharacterClasses;
 #else
+using ScheduleOne.DevUtilities;
 using ScheduleOne.Employees;
+using ScheduleOne.GameTime;
 using ScheduleOne.NPCs.CharacterClasses;
 #endif
 
@@ -21,8 +25,7 @@ public class Core : MelonMod
     internal static Fixer? CachedFixer;
     internal static readonly System.Random Rng = new();
 
-    // After OnSleepEnd, we delay the check so the tick cycle can deduct wages first.
-    // OnSleepEnd fires before wages are deducted; the tick processes them shortly after.
+    // After sleep ends, we delay the check so the tick cycle can deduct wages first.
     internal static float CheckAfterTime = -1f;
     // Count of employees per property that were already unable to pay BEFORE today's
     // wages were deducted. We only notify if MORE employees can't pay after deduction.
@@ -37,9 +40,10 @@ public class Core : MelonMod
         "Running low at the {0}. If the lockers don't get refilled, someone's not getting paid.",
     };
 
+    private bool _subscribed;
+
     public override void OnInitializeMelon()
     {
-        HarmonyInstance.PatchAll(typeof(SleepEndPatch));
         LoggerInstance.Msg("LockerNotificationsMod loaded.");
     }
 
@@ -48,10 +52,19 @@ public class Core : MelonMod
         CachedFixer = null;
         CheckAfterTime = -1f;
         PreSleepUnpayable.Clear();
+        _subscribed = false;
     }
 
     public override void OnUpdate()
     {
+        // Subscribe to TimeManager.onSleepEnd once it's available
+        if (!_subscribed && NetworkSingleton<TimeManager>.InstanceExists)
+        {
+            var tm = NetworkSingleton<TimeManager>.Instance;
+            tm.onSleepEnd += new Action(OnSleepEnd);
+            _subscribed = true;
+        }
+
         if (CheckAfterTime < 0f || Time.time < CheckAfterTime) return;
         CheckAfterTime = -1f;
 
@@ -59,9 +72,35 @@ public class Core : MelonMod
         PreSleepUnpayable.Clear();
     }
 
+    /// <summary>
+    /// Fires once when sleep ends (before wages are deducted).
+    /// Snapshots which employees per property can't pay, then schedules a delayed check.
+    /// </summary>
+    private static void OnSleepEnd()
+    {
+        PreSleepUnpayable.Clear();
+
+        var employees = UnityEngine.Object.FindObjectsOfType<Employee>();
+        if (employees == null) return;
+
+        foreach (var emp in employees)
+        {
+            if (emp.IsPayAvailable()) continue;
+
+            var property = emp.AssignedProperty;
+            var code = property?.PropertyCode;
+            if (string.IsNullOrEmpty(code)) continue;
+
+            PreSleepUnpayable.TryGetValue(code, out int count);
+            PreSleepUnpayable[code] = count + 1;
+        }
+
+        CheckAfterTime = Time.time + 10f;
+    }
+
     internal static void CheckAllEmployees()
     {
-        var employees = Object.FindObjectsOfType<Employee>();
+        var employees = UnityEngine.Object.FindObjectsOfType<Employee>();
         if (employees == null) return;
 
         // Count how many employees per property can't pay now (after wages deducted)
@@ -90,41 +129,11 @@ public class Core : MelonMod
             if (postCount <= preCount) continue;
 
             if (CachedFixer == null)
-                CachedFixer = Object.FindObjectOfType<Fixer>();
+                CachedFixer = UnityEngine.Object.FindObjectOfType<Fixer>();
             if (CachedFixer?.MSGConversation == null) return;
 
             var msg = string.Format(MessageTemplates[Rng.Next(MessageTemplates.Length)], propertyNames[code]);
             CachedFixer.SendTextMessage(msg);
         }
-    }
-}
-
-/// <summary>
-/// When sleep ends, count employees per property that are already unable to pay,
-/// then schedule a delayed check. The delay allows the tick cycle to process wage
-/// deductions before we check balances. Only properties where the unpayable count
-/// INCREASES after deduction trigger a notification.
-/// </summary>
-[HarmonyPatch(typeof(Employee), "OnSleepEnd")]
-public static class SleepEndPatch
-{
-    [HarmonyPostfix]
-    public static void Postfix(Employee __instance)
-    {
-        // Count employees per property that can't pay BEFORE wages are deducted.
-        if (!__instance.IsPayAvailable())
-        {
-            var prop = __instance.AssignedProperty;
-            var code = prop?.PropertyCode;
-            if (!string.IsNullOrEmpty(code))
-            {
-                Core.PreSleepUnpayable.TryGetValue(code, out int count);
-                Core.PreSleepUnpayable[code] = count + 1;
-            }
-        }
-
-        // Only schedule once per sleep (fires per employee)
-        if (Core.CheckAfterTime > 0f) return;
-        Core.CheckAfterTime = Time.time + 10f;
     }
 }
