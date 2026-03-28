@@ -12,7 +12,7 @@ Fixes settings not persisting between launches. The game's settings loader crash
 
 ## Compatibility
 
-- Supports both IL2CPP and Mono branches of the game
+- Supports both IL2CPP and Mono branches of the game (though IL2CPP doesn't need this)
 - Savegame-safe — does not modify core save data, can be removed at any time
 - Works with all other GravityBlastr mods
 

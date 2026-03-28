@@ -1,6 +1,6 @@
 # GravityBlastr Brick Unpacker
 
-Allows unpacking bricks at a packaging station even when there's packaging (baggies/jars) in the packaging slot. Unpacking a brick only produces loose product — it doesn't use the packaging slot, so the game's restriction is unnecessary.
+Allows unpacking bricks at a packaging station even when there's packaging (baggies/jars) in the packaging slot. Unpacking a brick doesn't use the packaging slot, so it shouldn't care whether anything is there.
 
 ## Features
 

@@ -2,14 +2,14 @@
 
 Scales laundering capacity based on player rank.
 Starting at Peddler I, capacity increases by 5% per rank tier, up to 3x the base capacity.
-So the max laundering cap gradually increases from $20K/day with all businesses, up to $60K/day at high player level.
+So the max laundering cap gradually increases from $20K/day with all businesses, up to $60K/day at Kingpin level.
 
 ## Features
 
 - Laundering capacity scales with rank progression
 - 5% increase per rank tier
 - Up to 3x base capacity at max rank
-- $60,000/day cap instead of $20,000/day
+- $60,000/day cap (with all businesses) instead of $20,000/day
 
 ## Compatibility
 
