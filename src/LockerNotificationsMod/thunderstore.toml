@@ -29,5 +29,5 @@ target = "Mono/GravityBlastr.LockerNotificationsMod.Mono.dll"
 [publish]
 repository = "https://thunderstore.io"
 communities = ["schedule-i"]
-categories = ["Tweaks"]
+categories = ["Mods", "Mono", "IL2CPP"]
 
