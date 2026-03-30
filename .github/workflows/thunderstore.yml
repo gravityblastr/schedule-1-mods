@@ -63,5 +63,6 @@ jobs:
           echo "Publishing to Thunderstore: $CHANGED_MODS"
           for mod in $CHANGED_MODS; do
             echo "Publishing $mod..."
-            (cd src/$mod && tcli publish --version "$VERSION")
+            sed -i "s/^versionNumber = .*/versionNumber = \"$VERSION\"/" "src/$mod/thunderstore.toml"
+            (cd src/$mod && tcli publish)
           done
