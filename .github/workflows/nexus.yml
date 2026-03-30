@@ -9,6 +9,7 @@ permissions:
   contents: read
   packages: read
 
+# Game-scoped mod IDs from nexusmods.com/schedule1/mods/<id>
 env:
   NEXUS_MOD_ID_DeliveryNotificationsMod: "1760"
   NEXUS_MOD_ID_DontPunchRayMod: "1761"
@@ -42,13 +43,14 @@ jobs:
       - name: Build
         run: dotnet build src/GravityBlastrMods.sln -c Release
 
-      - name: Package per-mod IL2CPP and Mono zips
+      - name: Determine changed mods and package zips
         run: |
+          set -e
           TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
           ALL_MODS="DeliveryNotificationsMod DontPunchRayMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod LockerNotificationsMod PrefsPersistMod SigningFreeMod UnpackMod"
           PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${TAG}$" | head -1)
 
-          # Props change = publish everything
           if [ -z "$PREV_TAG" ] || git diff --name-only "$PREV_TAG"..HEAD | grep -qE '^src/Directory\.(Build|Packages)\.props$'; then
             CHANGED_MODS="$ALL_MODS"
           else
@@ -57,22 +59,25 @@ jobs:
               | cut -d/ -f2 | sort -u | tr '\n' ' ')
           fi
 
-          if [ -z "$(echo $CHANGED_MODS | tr -d '[:space:]')" ]; then
+          if [ -z "$(echo "$CHANGED_MODS" | tr -d '[:space:]')" ]; then
             echo "No mods changed, skipping Nexus publish."
             echo "CHANGED_MODS=" >> "$GITHUB_ENV"
             exit 0
           fi
 
+          echo "Changed mods: $CHANGED_MODS"
           echo "CHANGED_MODS=$CHANGED_MODS" >> "$GITHUB_ENV"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
           mkdir -p artifacts
           for mod in $CHANGED_MODS; do
             cp "src/$mod/bin/Release/net6.0/GravityBlastr.$mod.dll" .
-            7z a -tzip "artifacts/$mod-$TAG-IL2CPP.zip" "GravityBlastr.$mod.dll"
+            7z a -tzip "artifacts/${mod}-${TAG}-IL2CPP.zip" "GravityBlastr.$mod.dll"
             rm "GravityBlastr.$mod.dll"
 
             cp "src/$mod/bin/Release/netstandard2.1/GravityBlastr.$mod.dll" .
-            7z a -tzip "artifacts/$mod-$TAG-Mono.zip" "GravityBlastr.$mod.dll"
+            7z a -tzip "artifacts/${mod}-${TAG}-Mono.zip" "GravityBlastr.$mod.dll"
             rm "GravityBlastr.$mod.dll"
           done
 
@@ -81,29 +86,88 @@ jobs:
         env:
           NEXUS_API_KEY: ${{ secrets.NEXUS_API_KEY }}
         run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          VERSION="${GITHUB_REF#refs/tags/v}"
+          set -e
+          NEXUS_API="https://api.nexusmods.com/v3"
           GAME_DOMAIN="schedule1"
+
+          # Upload one zip to Nexus using the v3 API:
+          #   1. Resolve game-scoped mod ID -> internal UUID
+          #   2. Create upload session -> presigned S3 URL
+          #   3. PUT file to S3
+          #   4. Finalise upload
+          #   5. Poll until state == "available"
+          #   6. POST /mod-files to attach the upload to the mod page
+          nexus_upload() {
+            local MOD="$1"
+            local FILE_PATH="$2"
+            local DISPLAY_NAME="$3"
+            local GAME_SCOPED_ID="$4"
+
+            echo "=== $DISPLAY_NAME ==="
+
+            # Step 1: resolve internal mod UUID
+            MOD_INFO=$(curl -sf \
+              -H "apikey: $NEXUS_API_KEY" \
+              "${NEXUS_API}/games/${GAME_DOMAIN}/mods/${GAME_SCOPED_ID}")
+            MOD_UUID=$(echo "$MOD_INFO" | jq -r '.data.id')
+            echo "  mod UUID: $MOD_UUID"
+
+            # Step 2: create upload session
+            FILE_SIZE=$(stat -c%s "$FILE_PATH")
+            FILE_NAME=$(basename "$FILE_PATH")
+            UPLOAD_RESP=$(curl -sf -X POST \
+              -H "apikey: $NEXUS_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{\"size_bytes\": $FILE_SIZE, \"filename\": \"$FILE_NAME\"}" \
+              "${NEXUS_API}/uploads")
+            UPLOAD_ID=$(echo "$UPLOAD_RESP" | jq -r '.data.id')
+            PRESIGNED_URL=$(echo "$UPLOAD_RESP" | jq -r '.data.presigned_url')
+            echo "  upload ID: $UPLOAD_ID"
+
+            # Step 3: upload file to S3 presigned URL (no auth header)
+            curl -sf -X PUT \
+              -H "Content-Type: application/octet-stream" \
+              --upload-file "$FILE_PATH" \
+              "$PRESIGNED_URL"
+            echo "  file uploaded to S3"
+
+            # Step 4: finalise
+            curl -sf -X POST \
+              -H "apikey: $NEXUS_API_KEY" \
+              "${NEXUS_API}/uploads/${UPLOAD_ID}/finalise" > /dev/null
+            echo "  finalised"
+
+            # Step 5: poll until available
+            for i in {1..30}; do
+              UPLOAD_STATE=$(curl -sf \
+                -H "apikey: $NEXUS_API_KEY" \
+                "${NEXUS_API}/uploads/${UPLOAD_ID}" | jq -r '.data.state')
+              echo "  attempt $i: state=$UPLOAD_STATE"
+              [ "$UPLOAD_STATE" = "available" ] && break
+              sleep 3
+            done
+            if [ "$UPLOAD_STATE" != "available" ]; then
+              echo "  ERROR: upload timed out (state=$UPLOAD_STATE)"
+              exit 1
+            fi
+
+            # Step 6: create mod file
+            CREATE_RESP=$(curl -sf -X POST \
+              -H "apikey: $NEXUS_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{\"upload_id\":\"$UPLOAD_ID\",\"mod_id\":\"$MOD_UUID\",\"name\":\"$DISPLAY_NAME\",\"version\":\"$VERSION\",\"file_category\":\"main\"}" \
+              "${NEXUS_API}/mod-files")
+            FILE_SCOPED_ID=$(echo "$CREATE_RESP" | jq -r '.data.game_scoped_id')
+            echo "  created mod file: game_scoped_id=$FILE_SCOPED_ID"
+          }
+
           for mod in $CHANGED_MODS; do
-            MOD_ID_VAR="NEXUS_MOD_ID_${mod}"
-            MOD_ID="${!MOD_ID_VAR}"
-            if [ -z "$MOD_ID" ]; then
-              echo "No mod ID configured for $mod, skipping."
+            ID_VAR="NEXUS_MOD_ID_${mod}"
+            GAME_SCOPED_ID="${!ID_VAR}"
+            if [ -z "$GAME_SCOPED_ID" ]; then
+              echo "No Nexus ID configured for $mod, skipping."
               continue
             fi
-            echo "Uploading $mod (Nexus ID: $MOD_ID)..."
-            # IL2CPP
-            curl -s -X POST \
-              "https://www.nexusmods.com/v1/games/${GAME_DOMAIN}/mods/${MOD_ID}/files.json" \
-              -H "apikey: $NEXUS_API_KEY" \
-              -F "file=@artifacts/${mod}-${TAG}-IL2CPP.zip" \
-              -F "version=$VERSION" \
-              -F "name=${mod} ${VERSION} (IL2CPP)"
-            # Mono
-            curl -s -X POST \
-              "https://www.nexusmods.com/v1/games/${GAME_DOMAIN}/mods/${MOD_ID}/files.json" \
-              -H "apikey: $NEXUS_API_KEY" \
-              -F "file=@artifacts/${mod}-${TAG}-Mono.zip" \
-              -F "version=$VERSION" \
-              -F "name=${mod} ${VERSION} (Mono)"
+            nexus_upload "$mod" "artifacts/${mod}-${TAG}-IL2CPP.zip" "${mod} ${VERSION} (IL2CPP)" "$GAME_SCOPED_ID"
+            nexus_upload "$mod" "artifacts/${mod}-${TAG}-Mono.zip" "${mod} ${VERSION} (Mono)" "$GAME_SCOPED_ID"
           done
