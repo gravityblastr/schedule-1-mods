@@ -1,11 +1,18 @@
-name: Release
+name: GitHub Release
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag:
         description: 'Tag to release (e.g. v1.2.3)'
         required: true
+        type: string
+      mods:
+        description: 'Space-separated list of mods to package (leave blank for all mods)'
+        required: false
         type: string
 
 permissions:
@@ -35,8 +42,11 @@ jobs:
 
       - name: Package per-mod zips
         run: |
-          TAG="${{ github.event.inputs.tag }}"
-          MODS="DeliveryNotificationsMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod SigningFreeMod DontPunchRayMod PrefsPersistMod LockerNotificationsMod UnpackMod"
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          MODS="${{ github.event.inputs.mods }}"
+          if [ -z "$MODS" ]; then
+            MODS="DeliveryNotificationsMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod SigningFreeMod DontPunchRayMod PrefsPersistMod LockerNotificationsMod UnpackMod"
+          fi
 
           mkdir -p artifacts
 
@@ -51,7 +61,7 @@ jobs:
 
       - name: Generate release notes
         run: |
-          TAG="${{ github.event.inputs.tag }}"
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
           PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${TAG}$" | head -1)
 
           # Read game version from Directory.Packages.props (e.g. 0.4.4.10 -> 0.4.4f10)
@@ -91,6 +101,6 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.tag }}
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: artifacts/*-v*.zip
           body_path: notes.md
