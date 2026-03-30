@@ -23,6 +23,7 @@ vars:
     PrefsPersistMod
     LockerNotificationsMod
     UnpackMod
+    WelcomeToTheJungleMod
 
 tasks:
   default:

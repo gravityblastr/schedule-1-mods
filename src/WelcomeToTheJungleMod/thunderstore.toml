@@ -1,0 +1,29 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "gravityblastr"
+name = "WelcomeToTheJungleMod"
+versionNumber = "0.0.1"
+description = "Hardcore cold-start mode: no tutorial guidance, no dead-drop cash, destroyed RV. Figure it out yourself."
+websiteUrl = "https://github.com/gravityblastr/schedule-1-mods"
+containsNsfwContent = false
+
+[package.dependencies]
+"LavaGang-MelonLoader" = "0.6.6"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "../../.work/thunderstore"
+
+[[build.copy]]
+source = "./bin/Release/net6.0/GravityBlastr.WelcomeToTheJungleMod.dll"
+target = "IL2CPP/GravityBlastr.WelcomeToTheJungleMod.IL2CPP.dll"
+
+[[build.copy]]
+source = "./bin/Release/netstandard2.1/GravityBlastr.WelcomeToTheJungleMod.dll"
+target = "Mono/GravityBlastr.WelcomeToTheJungleMod.Mono.dll"
+
+[publish]
+repository = "https://thunderstore.io"
