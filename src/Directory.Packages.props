@@ -5,11 +5,11 @@
 
   <!-- Mono game libs -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-    <PackageVersion Include="GravityBlastr.ScheduleOne.Libs.Mono" Version="0.4.4.10" />
+    <PackageVersion Include="GravityBlastr.ScheduleOne.Libs.Mono" Version="0.4.5.1" />
   </ItemGroup>
 
   <!-- IL2CPP game libs -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageVersion Include="GravityBlastr.ScheduleOne.Libs.IL2CPP" Version="0.4.4.10" />
+    <PackageVersion Include="GravityBlastr.ScheduleOne.Libs.IL2CPP" Version="0.4.5.1" />
   </ItemGroup>
 </Project>

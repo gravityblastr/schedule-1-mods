@@ -1,13 +1,12 @@
 # GravityBlastr Delivery Notifications
 
-Sends in-game phone notifications (similar to the laundering notifications) when deliveries arrive or complete. 
-Includes the store name, destination, and loading dock in the message.
+Replaces the game's basic delivery arrival notification with a detailed version that includes the store name, destination, and loading dock. Also adds a completion notification so you know when to reorder.
 
 ## Features
 
-- Notification when a delivery arrives at its destination
-- Notification when a delivery is complete
-- Messages include store name, destination, and loading dock
+- **Enhanced arrival notification** — replaces the game's default (which only shows the property name) with one that includes store name, destination, and loading dock
+- **Completion notification** — the game doesn't notify you when a delivery is fully unloaded; this mod does
+- Color-coded icons: green for arrival, red for completion
 
 ## Compatibility
 

@@ -5,3 +5,4 @@ packaging/staging/
 packaging/out/
 bin/
 obj/
+*.bbcode

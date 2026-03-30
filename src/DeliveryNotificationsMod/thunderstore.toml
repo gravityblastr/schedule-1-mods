@@ -1,0 +1,32 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "GravityBlastr"
+name = "DeliveryNotificationsMod"
+versionNumber = "0.0.1"
+description = "Sends notifications when deliveries arrive or complete, with store name, destination, and loading dock. Replaces the built-in delivery notifications."
+websiteUrl = "https://github.com/gravityblastr/schedule-1-mods"
+containsNsfwContent = false
+
+[package.dependencies]
+"LavaGang-MelonLoader" = "0.6.6"
+"the_croods-SwapperPlugin" = "1.2.2"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "../../.work/thunderstore"
+
+[[build.copy]]
+source = "./bin/Release/net6.0/GravityBlastr.DeliveryNotificationsMod.dll"
+target = "IL2CPP/GravityBlastr.DeliveryNotificationsMod.IL2CPP.dll"
+
+[[build.copy]]
+source = "./bin/Release/netstandard2.1/GravityBlastr.DeliveryNotificationsMod.dll"
+target = "Mono/GravityBlastr.DeliveryNotificationsMod.Mono.dll"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = ["schedule-i"]
+categories = ["Tweaks"]

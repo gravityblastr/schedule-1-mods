@@ -32,7 +32,22 @@ public class Core : MelonMod
     public override void OnInitializeMelon()
     {
         HarmonyInstance.PatchAll(typeof(DeliveryStatusPatch));
+        HarmonyInstance.PatchAll(typeof(SuppressGameArrivalNotification));
         LoggerInstance.Msg("DeliveryNotificationsMod loaded.");
+    }
+}
+
+/// <summary>
+/// Suppresses the game's built-in "Delivery Arrived" notification (property name only)
+/// so it doesn't double up with our richer version that includes store and dock.
+/// </summary>
+[HarmonyPatch(typeof(NotificationsManager), nameof(NotificationsManager.SendNotification))]
+public static class SuppressGameArrivalNotification
+{
+    [HarmonyPrefix]
+    public static bool Prefix(string title)
+    {
+        return title != "Delivery Arrived";
     }
 }
 

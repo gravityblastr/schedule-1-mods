@@ -8,7 +8,7 @@ Test on both Mono and IL2CPP branches.
 - [ ] `task build` succeeds (both targets, 0 errors)
 - [ ] `task game:check` shows correct active branch
 - [ ] `task deploy` detects the right branch and deploys
-- [ ] Game launches with MelonLoader, all 11 mods show "loaded" in log
+- [ ] Game launches with MelonLoader, all 10 mods show "loaded" in log
 
 ## PrefsPersistMod
 
@@ -59,19 +59,10 @@ Test on both Mono and IL2CPP branches.
 - [ ] Multiple vehicles each remember their own headlight state
 - [ ] `LightPersistMod.json` exists in save folder with correct structure
 
-## DeliveryPersistMod
-
-- [ ] Set destination, dock, and quantities for a shop, then submit order
-- [ ] Cart is NOT cleared after order — quantities remain
-- [ ] Save, load, open delivery app — destination and dock are restored
-- [ ] Quantities are restored after load
-- [ ] Each shop remembers its own settings independently
-- [ ] `DeliveryPersistMod.json` exists in save folder with correct structure
-- [ ] Fresh save (no JSON file): app starts with defaults, no errors
-
 ## DeliveryNotificationsMod
 
-- [ ] Delivery arrives — notification appears with store name, destination, dock
+- [ ] Delivery arrives — mod notification appears with store name, destination, dock
+- [ ] Game's basic "Delivery Arrived" notification is suppressed (no duplicate)
 - [ ] Delivery completes — notification appears (different color)
 - [ ] Arrived notification icon is green, completed is red
 - [ ] Notification text is readable (not cut off)
@@ -101,5 +92,4 @@ Test on both Mono and IL2CPP branches.
 ## Cross-Mod
 
 - [ ] LaunderMaxMod + LaunderScaleMod: slider max matches scaled capacity
-- [ ] DeliveryPersistMod + DeliveryNotificationsMod: restoring quantities on load does not trigger notifications
 - [ ] LightPersistMod + IlluminationMod: restored lights still have boosted range

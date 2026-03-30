@@ -1,7 +1,0 @@
-{
-  "name": "GravityBlastr Locker Notifications",
-  "version_number": "0.0.0",
-  "website_url": "https://github.com/gravityblastr/schedule-1-mods",
-  "description": "Texts you when employee pay depletes a locker below tomorrow's need. One message per property per day.",
-  "dependencies": ["LavaGang-MelonLoader-0.6.6", "the_croods-SwapperPlugin-1.2.2"]
-}

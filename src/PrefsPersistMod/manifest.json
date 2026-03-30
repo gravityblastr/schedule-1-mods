@@ -1,7 +1,0 @@
-{
-  "name": "GravityBlastr Preferences Memory",
-  "version_number": "0.0.0",
-  "website_url": "https://github.com/gravityblastr/schedule-1-mods",
-  "description": "Fixes settings not persisting between launches on certain system locales.",
-  "dependencies": ["LavaGang-MelonLoader-0.6.6", "the_croods-SwapperPlugin-1.2.2"]
-}

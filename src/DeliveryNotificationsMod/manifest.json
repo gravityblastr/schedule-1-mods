@@ -1,7 +1,0 @@
-{
-  "name": "GravityBlastr Delivery Notifications",
-  "version_number": "0.0.0",
-  "website_url": "https://github.com/gravityblastr/schedule-1-mods",
-  "description": "Sends phone notifications when deliveries arrive or complete, with store name, destination, and loading dock.",
-  "dependencies": ["LavaGang-MelonLoader-0.6.6", "the_croods-SwapperPlugin-1.2.2"]
-}

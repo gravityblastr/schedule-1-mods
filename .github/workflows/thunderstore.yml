@@ -1,0 +1,63 @@
+name: Thunderstore
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  packages: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build
+        run: dotnet build src/GravityBlastrMods.sln -c Release
+
+      - name: Install tcli
+        run: dotnet tool install -g tcli
+
+      - name: Publish changed mods to Thunderstore
+        env:
+          TCLI_AUTH_TOKEN: ${{ secrets.THUNDERSTORE_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          ALL_MODS="DeliveryNotificationsMod DontPunchRayMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod LockerNotificationsMod PrefsPersistMod SigningFreeMod UnpackMod"
+          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${TAG}$" | head -1)
+
+          # Props change = rebuild everything
+          if [ -z "$PREV_TAG" ] || git diff --name-only "$PREV_TAG"..HEAD | grep -qE '^src/Directory\.(Build|Packages)\.props$'; then
+            CHANGED_MODS="$ALL_MODS"
+          else
+            CHANGED_MODS=$(git diff --name-only "$PREV_TAG"..HEAD \
+              | grep -E '^src/[^/]+/.*\.cs$' \
+              | cut -d/ -f2 | sort -u | tr '\n' ' ')
+          fi
+
+          if [ -z "$(echo $CHANGED_MODS | tr -d '[:space:]')" ]; then
+            echo "No mods changed, skipping Thunderstore publish."
+            exit 0
+          fi
+
+          mkdir -p .work/thunderstore
+          echo "Publishing to Thunderstore: $CHANGED_MODS"
+          for mod in $CHANGED_MODS; do
+            echo "Publishing $mod..."
+            (cd src/$mod && tcli publish --version "$VERSION")
+          done

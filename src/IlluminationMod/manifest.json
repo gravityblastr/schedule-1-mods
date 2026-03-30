@@ -1,7 +1,0 @@
-{
-  "name": "GravityBlastr Illumination",
-  "version_number": "0.0.0",
-  "website_url": "https://github.com/gravityblastr/schedule-1-mods",
-  "description": "Better nighttime visibility: 2x flashlight range, 2x headlight range, 4x reverse light range, and sticky reverse lights.",
-  "dependencies": ["LavaGang-MelonLoader-0.6.6", "the_croods-SwapperPlugin-1.2.2"]
-}
