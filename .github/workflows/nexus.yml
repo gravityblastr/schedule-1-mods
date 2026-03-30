@@ -1,9 +1,12 @@
 name: Nexus Mods
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (e.g. v1.2.3)'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -46,7 +49,7 @@ jobs:
       - name: Determine changed mods and package zips
         run: |
           set -e
-          TAG="${GITHUB_REF#refs/tags/}"
+          TAG="${{ github.event.inputs.tag }}"
           VERSION="${TAG#v}"
           ALL_MODS="DeliveryNotificationsMod DontPunchRayMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod LockerNotificationsMod PrefsPersistMod SigningFreeMod UnpackMod"
           PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${TAG}$" | head -1)
