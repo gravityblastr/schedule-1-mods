@@ -1,0 +1,33 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "GravityBlastr"
+name = "LaunderMaxMod"
+versionNumber = "0.0.1"
+description = "Auto-selects the maximum amount when opening the laundering interface."
+websiteUrl = "https://github.com/gravityblastr/schedule-1-mods"
+containsNsfwContent = false
+
+[package.dependencies]
+"LavaGang-MelonLoader" = "0.6.6"
+"the_croods-SwapperPlugin" = "1.2.2"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "../../.work/thunderstore"
+
+[[build.copy]]
+source = "./bin/Release/net6.0/GravityBlastr.LaunderMaxMod.dll"
+target = "IL2CPP/GravityBlastr.LaunderMaxMod.IL2CPP.dll"
+
+[[build.copy]]
+source = "./bin/Release/netstandard2.1/GravityBlastr.LaunderMaxMod.dll"
+target = "Mono/GravityBlastr.LaunderMaxMod.Mono.dll"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = ["schedule-i"]
+categories = ["Tweaks"]
+

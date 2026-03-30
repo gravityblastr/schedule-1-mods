@@ -1,7 +1,0 @@
-{
-  "name": "GravityBlastr Launder Max",
-  "version_number": "0.0.0",
-  "website_url": "https://github.com/gravityblastr/schedule-1-mods",
-  "description": "Auto-selects the maximum amount when opening the laundering interface.",
-  "dependencies": ["LavaGang-MelonLoader-0.6.6", "the_croods-SwapperPlugin-1.2.2"]
-}

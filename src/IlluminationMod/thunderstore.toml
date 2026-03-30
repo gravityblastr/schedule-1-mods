@@ -1,0 +1,33 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "GravityBlastr"
+name = "IlluminationMod"
+versionNumber = "0.0.1"
+description = "High-powered player flashlight and vehicle headlights/reverse lights. Backing up in a vehicle now illuminates the area behind you."
+websiteUrl = "https://github.com/gravityblastr/schedule-1-mods"
+containsNsfwContent = false
+
+[package.dependencies]
+"LavaGang-MelonLoader" = "0.6.6"
+"the_croods-SwapperPlugin" = "1.2.2"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "../../.work/thunderstore"
+
+[[build.copy]]
+source = "./bin/Release/net6.0/GravityBlastr.IlluminationMod.dll"
+target = "IL2CPP/GravityBlastr.IlluminationMod.IL2CPP.dll"
+
+[[build.copy]]
+source = "./bin/Release/netstandard2.1/GravityBlastr.IlluminationMod.dll"
+target = "Mono/GravityBlastr.IlluminationMod.Mono.dll"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = ["schedule-i"]
+categories = ["Tweaks"]
+

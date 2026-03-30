@@ -1,7 +1,0 @@
-{
-  "name": "GravityBlastr Illumination",
-  "version_number": "0.0.0",
-  "website_url": "https://github.com/gravityblastr/schedule-1-mods",
-  "description": "High-powered player flashlight and vehicle headlights/reverse lights. Backing up in a vehicle now illuminates the area behind you.",
-  "dependencies": ["LavaGang-MelonLoader-0.6.6", "the_croods-SwapperPlugin-1.2.2"]
-}

@@ -1,0 +1,33 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "GravityBlastr"
+name = "DontPunchRayMod"
+versionNumber = "0.0.1"
+description = "Adds a sell option to Ray and Jeremy's dialog while they're in their stores. You can sell to them without punching them first."
+websiteUrl = "https://github.com/gravityblastr/schedule-1-mods"
+containsNsfwContent = false
+
+[package.dependencies]
+"LavaGang-MelonLoader" = "0.6.6"
+"the_croods-SwapperPlugin" = "1.2.2"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "../../.work/thunderstore"
+
+[[build.copy]]
+source = "./bin/Release/net6.0/GravityBlastr.DontPunchRayMod.dll"
+target = "IL2CPP/GravityBlastr.DontPunchRayMod.IL2CPP.dll"
+
+[[build.copy]]
+source = "./bin/Release/netstandard2.1/GravityBlastr.DontPunchRayMod.dll"
+target = "Mono/GravityBlastr.DontPunchRayMod.Mono.dll"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = ["schedule-i"]
+categories = ["Tweaks"]
+

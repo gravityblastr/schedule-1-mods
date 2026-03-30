@@ -1,0 +1,33 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "GravityBlastr"
+name = "LaunderScaleMod"
+versionNumber = "0.0.1"
+description = "Scales laundering capacity with player rank: up to 3x base ($60k/day instead of $20k)."
+websiteUrl = "https://github.com/gravityblastr/schedule-1-mods"
+containsNsfwContent = false
+
+[package.dependencies]
+"LavaGang-MelonLoader" = "0.6.6"
+"the_croods-SwapperPlugin" = "1.2.2"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "../../.work/thunderstore"
+
+[[build.copy]]
+source = "./bin/Release/net6.0/GravityBlastr.LaunderScaleMod.dll"
+target = "IL2CPP/GravityBlastr.LaunderScaleMod.IL2CPP.dll"
+
+[[build.copy]]
+source = "./bin/Release/netstandard2.1/GravityBlastr.LaunderScaleMod.dll"
+target = "Mono/GravityBlastr.LaunderScaleMod.Mono.dll"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = ["schedule-i"]
+categories = ["Tweaks"]
+

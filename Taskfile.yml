@@ -52,6 +52,15 @@ tasks:
     cmds:
       - dotnet build src/GravityBlastrMods.sln -c Debug -f net6.0
 
+  build:thunderstore:
+    desc: Build Thunderstore packages for all mods (Release build → .work/thunderstore/)
+    deps: [restore]
+    cmds:
+      - dotnet build src/GravityBlastrMods.sln -c Release --no-restore
+      - mkdir -p .work/thunderstore
+      - for mod in {{.MODS}}; do (cd src/$mod && tcli build); done
+      - echo "Packages written to .work/thunderstore/"
+
   build:clean:
     desc: Clean all build outputs
     cmds:

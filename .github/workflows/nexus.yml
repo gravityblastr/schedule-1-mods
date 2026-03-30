@@ -1,0 +1,108 @@
+name: Nexus Mods
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  packages: read
+
+env:
+  NEXUS_MOD_ID_DeliveryNotificationsMod: "1760"
+  NEXUS_MOD_ID_DontPunchRayMod: "1761"
+  NEXUS_MOD_ID_IlluminationMod: "1762"
+  NEXUS_MOD_ID_LaunderMaxMod: "1763"
+  NEXUS_MOD_ID_LaunderScaleMod: "1764"
+  NEXUS_MOD_ID_LightPersistMod: "1765"
+  NEXUS_MOD_ID_LockerNotificationsMod: "1766"
+  NEXUS_MOD_ID_PrefsPersistMod: "1767"
+  NEXUS_MOD_ID_SigningFreeMod: "1768"
+  NEXUS_MOD_ID_UnpackMod: "1769"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build
+        run: dotnet build src/GravityBlastrMods.sln -c Release
+
+      - name: Package per-mod IL2CPP and Mono zips
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          ALL_MODS="DeliveryNotificationsMod DontPunchRayMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod LockerNotificationsMod PrefsPersistMod SigningFreeMod UnpackMod"
+          PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${TAG}$" | head -1)
+
+          # Props change = publish everything
+          if [ -z "$PREV_TAG" ] || git diff --name-only "$PREV_TAG"..HEAD | grep -qE '^src/Directory\.(Build|Packages)\.props$'; then
+            CHANGED_MODS="$ALL_MODS"
+          else
+            CHANGED_MODS=$(git diff --name-only "$PREV_TAG"..HEAD \
+              | grep -E '^src/[^/]+/.*\.cs$' \
+              | cut -d/ -f2 | sort -u | tr '\n' ' ')
+          fi
+
+          if [ -z "$(echo $CHANGED_MODS | tr -d '[:space:]')" ]; then
+            echo "No mods changed, skipping Nexus publish."
+            echo "CHANGED_MODS=" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          echo "CHANGED_MODS=$CHANGED_MODS" >> "$GITHUB_ENV"
+
+          mkdir -p artifacts
+          for mod in $CHANGED_MODS; do
+            cp "src/$mod/bin/Release/net6.0/GravityBlastr.$mod.dll" .
+            7z a -tzip "artifacts/$mod-$TAG-IL2CPP.zip" "GravityBlastr.$mod.dll"
+            rm "GravityBlastr.$mod.dll"
+
+            cp "src/$mod/bin/Release/netstandard2.1/GravityBlastr.$mod.dll" .
+            7z a -tzip "artifacts/$mod-$TAG-Mono.zip" "GravityBlastr.$mod.dll"
+            rm "GravityBlastr.$mod.dll"
+          done
+
+      - name: Upload to Nexus Mods
+        if: env.CHANGED_MODS != ''
+        env:
+          NEXUS_API_KEY: ${{ secrets.NEXUS_API_KEY }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          GAME_DOMAIN="schedule1"
+          for mod in $CHANGED_MODS; do
+            MOD_ID_VAR="NEXUS_MOD_ID_${mod}"
+            MOD_ID="${!MOD_ID_VAR}"
+            if [ -z "$MOD_ID" ]; then
+              echo "No mod ID configured for $mod, skipping."
+              continue
+            fi
+            echo "Uploading $mod (Nexus ID: $MOD_ID)..."
+            # IL2CPP
+            curl -s -X POST \
+              "https://www.nexusmods.com/v1/games/${GAME_DOMAIN}/mods/${MOD_ID}/files.json" \
+              -H "apikey: $NEXUS_API_KEY" \
+              -F "file=@artifacts/${mod}-${TAG}-IL2CPP.zip" \
+              -F "version=$VERSION" \
+              -F "name=${mod} ${VERSION} (IL2CPP)"
+            # Mono
+            curl -s -X POST \
+              "https://www.nexusmods.com/v1/games/${GAME_DOMAIN}/mods/${MOD_ID}/files.json" \
+              -H "apikey: $NEXUS_API_KEY" \
+              -F "file=@artifacts/${mod}-${TAG}-Mono.zip" \
+              -F "version=$VERSION" \
+              -F "name=${mod} ${VERSION} (Mono)"
+          done
