@@ -49,7 +49,7 @@ jobs:
         run: |
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
           VERSION="${TAG#v}"
-          ALL_MODS="DeliveryNotificationsMod DontPunchRayMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod LockerNotificationsMod PrefsPersistMod SigningFreeMod UnpackMod"
+          ALL_MODS="DeliveryNotificationsMod DontPunchRayMod IlluminationMod LaunderMaxMod LaunderScaleMod LightPersistMod LockerNotificationsMod PrefsPersistMod SigningFreeMod UnpackMod ModPack"
           PREV_TAG=$(git tag --sort=-v:refname | grep -v "^${TAG}$" | head -1)
 
           # Props change = rebuild everything

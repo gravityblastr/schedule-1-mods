@@ -1,0 +1,34 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "gravityblastr"
+name = "GravityBlastrPack"
+versionNumber = "0.0.1"
+description = "All GravityBlastr mods for Schedule I in one install. Includes QoL improvements, UI fixes, and gameplay tweaks."
+websiteUrl = "https://github.com/gravityblastr/schedule-1-mods"
+containsNsfwContent = false
+
+[package.dependencies]
+"LavaGang-MelonLoader" = "0.6.6"
+"the_croods-SwapperPlugin" = "1.2.2"
+"gravityblastr-DeliveryNotificationsMod" = "1.0.0"
+"gravityblastr-DontPunchRayMod" = "1.0.0"
+"gravityblastr-IlluminationMod" = "1.0.0"
+"gravityblastr-LaunderMaxMod" = "1.0.0"
+"gravityblastr-LaunderScaleMod" = "1.0.0"
+"gravityblastr-LightPersistMod" = "1.0.0"
+"gravityblastr-LockerNotificationsMod" = "1.0.0"
+"gravityblastr-PrefsPersistMod" = "1.0.0"
+"gravityblastr-SigningFreeMod" = "1.0.0"
+"gravityblastr-UnpackMod" = "1.0.0"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "../../.work/thunderstore"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = ["schedule-i"]
+categories = ["modpacks"]
