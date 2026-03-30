@@ -7,6 +7,10 @@ on:
         description: 'Tag to publish (e.g. v1.2.3)'
         required: true
         type: string
+      mods:
+        description: 'Space-separated list of mods to upload (leave blank to auto-detect changed mods)'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -62,7 +66,11 @@ jobs:
               | cut -d/ -f2 | sort -u | tr '\n' ' ')
           fi
 
-          if [ -z "$(echo "$CHANGED_MODS" | tr -d '[:space:]')" ]; then
+          # Manual mods override takes priority
+          if [ -n "${{ github.event.inputs.mods }}" ]; then
+            CHANGED_MODS="${{ github.event.inputs.mods }}"
+            echo "Using manual mods override: $CHANGED_MODS"
+          elif [ -z "$(echo "$CHANGED_MODS" | tr -d '[:space:]')" ]; then
             echo "No mods changed, skipping Nexus publish."
             echo "CHANGED_MODS=" >> "$GITHUB_ENV"
             exit 0
@@ -89,17 +97,12 @@ jobs:
         env:
           NEXUS_API_KEY: ${{ secrets.NEXUS_API_KEY }}
         run: |
-          set -e
           NEXUS_API="https://api.nexusmods.com/v3"
           GAME_DOMAIN="schedule1"
+          FAILED=""
 
-          # Upload one zip to Nexus using the v3 API:
-          #   1. Resolve game-scoped mod ID -> internal UUID
-          #   2. Create upload session -> presigned S3 URL
-          #   3. PUT file to S3
-          #   4. Finalise upload
-          #   5. Poll until state == "available"
-          #   6. POST /mod-files to attach the upload to the mod page
+          # nexus_upload <mod> <file_path> <display_name> <game_scoped_id>
+          # Returns 0 on success, 1 on failure (does not abort the loop).
           nexus_upload() {
             local MOD="$1"
             local FILE_PATH="$2"
@@ -109,57 +112,66 @@ jobs:
             echo "=== $DISPLAY_NAME ==="
 
             # Step 1: resolve internal mod UUID
-            MOD_INFO=$(curl -sf \
+            local MOD_INFO
+            MOD_INFO=$(curl --fail-with-body --show-error --no-progress-meter \
               -H "apikey: $NEXUS_API_KEY" \
-              "${NEXUS_API}/games/${GAME_DOMAIN}/mods/${GAME_SCOPED_ID}")
+              "${NEXUS_API}/games/${GAME_DOMAIN}/mods/${GAME_SCOPED_ID}") || { echo "  ERROR: failed to get mod info"; return 1; }
+            local MOD_UUID
             MOD_UUID=$(echo "$MOD_INFO" | jq -r '.data.id')
             echo "  mod UUID: $MOD_UUID"
 
             # Step 2: create upload session
+            local FILE_SIZE FILE_NAME UPLOAD_RESP UPLOAD_ID PRESIGNED_URL
             FILE_SIZE=$(stat -c%s "$FILE_PATH")
             FILE_NAME=$(basename "$FILE_PATH")
-            UPLOAD_RESP=$(curl -sf -X POST \
+            UPLOAD_RESP=$(curl --fail-with-body --show-error --no-progress-meter -X POST \
               -H "apikey: $NEXUS_API_KEY" \
               -H "Content-Type: application/json" \
               -d "{\"size_bytes\": $FILE_SIZE, \"filename\": \"$FILE_NAME\"}" \
-              "${NEXUS_API}/uploads")
+              "${NEXUS_API}/uploads") || { echo "  ERROR: failed to create upload session"; return 1; }
             UPLOAD_ID=$(echo "$UPLOAD_RESP" | jq -r '.data.id')
             PRESIGNED_URL=$(echo "$UPLOAD_RESP" | jq -r '.data.presigned_url')
             echo "  upload ID: $UPLOAD_ID"
 
-            # Step 3: upload file to S3 presigned URL (no auth header)
-            curl -sf -X PUT \
+            # Step 3: PUT to S3 presigned URL (no auth header)
+            curl --fail-with-body --show-error --no-progress-meter -X PUT \
               -H "Content-Type: application/octet-stream" \
               --upload-file "$FILE_PATH" \
-              "$PRESIGNED_URL"
+              "$PRESIGNED_URL" || { echo "  ERROR: S3 upload failed"; return 1; }
             echo "  file uploaded to S3"
 
             # Step 4: finalise
-            curl -sf -X POST \
+            local FINALISE_RESP
+            FINALISE_RESP=$(curl --fail-with-body --show-error --no-progress-meter -X POST \
               -H "apikey: $NEXUS_API_KEY" \
-              "${NEXUS_API}/uploads/${UPLOAD_ID}/finalise" > /dev/null
+              "${NEXUS_API}/uploads/${UPLOAD_ID}/finalise") || { echo "  ERROR: finalise failed: $FINALISE_RESP"; return 1; }
             echo "  finalised"
 
             # Step 5: poll until available
+            local UPLOAD_STATE=""
             for i in {1..30}; do
-              UPLOAD_STATE=$(curl -sf \
+              local POLL_RESP
+              POLL_RESP=$(curl --fail-with-body --show-error --no-progress-meter \
                 -H "apikey: $NEXUS_API_KEY" \
-                "${NEXUS_API}/uploads/${UPLOAD_ID}" | jq -r '.data.state')
+                "${NEXUS_API}/uploads/${UPLOAD_ID}") || { echo "  ERROR: poll failed"; return 1; }
+              UPLOAD_STATE=$(echo "$POLL_RESP" | jq -r '.data.state')
               echo "  attempt $i: state=$UPLOAD_STATE"
               [ "$UPLOAD_STATE" = "available" ] && break
               sleep 3
             done
             if [ "$UPLOAD_STATE" != "available" ]; then
               echo "  ERROR: upload timed out (state=$UPLOAD_STATE)"
-              exit 1
+              return 1
             fi
 
             # Step 6: create mod file
-            CREATE_RESP=$(curl -sf -X POST \
+            local CREATE_RESP
+            CREATE_RESP=$(curl --fail-with-body --show-error --no-progress-meter -X POST \
               -H "apikey: $NEXUS_API_KEY" \
               -H "Content-Type: application/json" \
               -d "{\"upload_id\":\"$UPLOAD_ID\",\"mod_id\":\"$MOD_UUID\",\"name\":\"$DISPLAY_NAME\",\"version\":\"$VERSION\",\"file_category\":\"main\"}" \
-              "${NEXUS_API}/mod-files")
+              "${NEXUS_API}/mod-files") || { echo "  ERROR: create mod file failed: $CREATE_RESP"; return 1; }
+            local FILE_SCOPED_ID
             FILE_SCOPED_ID=$(echo "$CREATE_RESP" | jq -r '.data.game_scoped_id')
             echo "  created mod file: game_scoped_id=$FILE_SCOPED_ID"
           }
@@ -171,6 +183,13 @@ jobs:
               echo "No Nexus ID configured for $mod, skipping."
               continue
             fi
-            nexus_upload "$mod" "artifacts/${mod}-${TAG}-IL2CPP.zip" "${mod} ${VERSION} (IL2CPP)" "$GAME_SCOPED_ID"
-            nexus_upload "$mod" "artifacts/${mod}-${TAG}-Mono.zip" "${mod} ${VERSION} (Mono)" "$GAME_SCOPED_ID"
+            nexus_upload "$mod" "artifacts/${mod}-${TAG}-IL2CPP.zip" "${mod} ${VERSION} (IL2CPP)" "$GAME_SCOPED_ID" || FAILED="$FAILED ${mod}(IL2CPP)"
+            nexus_upload "$mod" "artifacts/${mod}-${TAG}-Mono.zip" "${mod} ${VERSION} (Mono)" "$GAME_SCOPED_ID" || FAILED="$FAILED ${mod}(Mono)"
           done
+
+          if [ -n "$FAILED" ]; then
+            echo ""
+            echo "FAILED uploads:$FAILED"
+            exit 1
+          fi
+          echo "All uploads complete."
