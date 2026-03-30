@@ -29,5 +29,5 @@ target = "Mono/GravityBlastr.LaunderScaleMod.Mono.dll"
 [publish]
 repository = "https://thunderstore.io"
 communities = ["schedule-i"]
-categories = ["mods", "mono", "il2cpp"]
+categories = ["mods"]
 
