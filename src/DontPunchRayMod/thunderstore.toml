@@ -2,7 +2,7 @@
 schemaVersion = "0.0.1"
 
 [package]
-namespace = "GravityBlastr"
+namespace = "gravityblastr"
 name = "DontPunchRayMod"
 versionNumber = "0.0.1"
 description = "Adds a sell option to Ray and Jeremy's dialog while they're in their stores. You can sell to them without punching them first."

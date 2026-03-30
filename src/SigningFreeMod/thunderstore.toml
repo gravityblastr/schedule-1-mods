@@ -2,7 +2,7 @@
 schemaVersion = "0.0.1"
 
 [package]
-namespace = "GravityBlastr"
+namespace = "gravityblastr"
 name = "SigningFreeMod"
 versionNumber = "0.0.1"
 description = "Fixes the \"signing free\" typo in the game — it should be \"signing fee\"."

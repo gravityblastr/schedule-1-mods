@@ -2,7 +2,7 @@
 schemaVersion = "0.0.1"
 
 [package]
-namespace = "GravityBlastr"
+namespace = "gravityblastr"
 name = "IlluminationMod"
 versionNumber = "0.0.1"
 description = "High-powered player flashlight and vehicle headlights/reverse lights. Backing up in a vehicle now illuminates the area behind you."

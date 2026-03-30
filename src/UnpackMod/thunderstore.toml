@@ -2,7 +2,7 @@
 schemaVersion = "0.0.1"
 
 [package]
-namespace = "GravityBlastr"
+namespace = "gravityblastr"
 name = "UnpackMod"
 versionNumber = "0.0.1"
 description = "Lets you unpack bricks at a packaging station even when packaging is in the slot."

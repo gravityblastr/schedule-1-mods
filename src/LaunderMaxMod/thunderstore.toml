@@ -2,7 +2,7 @@
 schemaVersion = "0.0.1"
 
 [package]
-namespace = "GravityBlastr"
+namespace = "gravityblastr"
 name = "LaunderMaxMod"
 versionNumber = "0.0.1"
 description = "Auto-selects the maximum amount when opening the laundering interface."

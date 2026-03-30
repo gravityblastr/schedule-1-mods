@@ -2,7 +2,7 @@
 schemaVersion = "0.0.1"
 
 [package]
-namespace = "GravityBlastr"
+namespace = "gravityblastr"
 name = "LightPersistMod"
 versionNumber = "0.0.1"
 description = "Saves flashlight and headlight state across game loads."

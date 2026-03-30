@@ -2,7 +2,7 @@
 schemaVersion = "0.0.1"
 
 [package]
-namespace = "GravityBlastr"
+namespace = "gravityblastr"
 name = "LaunderScaleMod"
 versionNumber = "0.0.1"
 description = "Scales laundering capacity with player rank: up to 3x base ($60k/day instead of $20k)."

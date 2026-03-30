@@ -2,7 +2,7 @@
 schemaVersion = "0.0.1"
 
 [package]
-namespace = "GravityBlastr"
+namespace = "gravityblastr"
 name = "PrefsPersistMod"
 versionNumber = "0.0.1"
 description = "Fixes settings not persisting between launches on certain system locales, when using the Mono/alternate branch of the game."

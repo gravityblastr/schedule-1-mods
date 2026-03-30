@@ -2,7 +2,7 @@
 schemaVersion = "0.0.1"
 
 [package]
-namespace = "GravityBlastr"
+namespace = "gravityblastr"
 name = "DeliveryNotificationsMod"
 versionNumber = "0.0.1"
 description = "Sends notifications when deliveries arrive or complete, with store name, destination, and loading dock. Replaces the built-in delivery notifications."
