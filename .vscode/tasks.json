@@ -5,7 +5,17 @@
       "label": "build",
       "detail": "Build all mods",
       "type": "shell",
-      "command": "task build-deploy",
+      "command": "task",
+      "windows": {
+        "command": "task"
+      },
+      "linux": {
+        "command": "go-task"
+      },
+      "osx": {
+        "command": "task"
+      },
+      "args": ["build-deploy"],
       "group": {
         "kind": "build",
         "isDefault": true

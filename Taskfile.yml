@@ -5,12 +5,6 @@ version: '3'
 dotenv: ['.env']
 
 vars:
-  GAME_DIR: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I'
-  MONO_MANAGED: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/Schedule I_Data/Managed'
-  MELONLOADER_MONO: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/MelonLoader/net35'
-  MELONLOADER_IL2CPP: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/MelonLoader/net6'
-  IL2CPP_ASSEMBLIES: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/MelonLoader/Il2CppAssemblies'
-  MODS_DIR: 'C:/Program Files (x86)/Steam/steamapps/common/Schedule I/Mods'
   DECOMPILED_REPO: '.work/decompiled'
   MODS: >-
     DeliveryNotificationsMod
@@ -68,31 +62,28 @@ tasks:
 
   deploy:
     desc: Auto-detect game branch and deploy correct mod DLLs
+    vars:
+      BRANCH:
+        sh: '[ -f "$GAME_DIR/GameAssembly.dll" ] && echo "il2cpp" || echo "mono"'
     cmds:
-      - |
-        if [ -f "{{.GAME_DIR}}/GameAssembly.dll" ]; then
-          echo "Detected IL2CPP branch"
-          task deploy:il2cpp
-        else
-          echo "Detected Mono branch"
-          task deploy:mono
-        fi
+      - echo "Detected {{.BRANCH}} branch"
+      - task: deploy:{{.BRANCH}}
 
   deploy:mono:
     desc: Clean and copy built mod DLLs to game Mods folder (Mono)
     cmds:
       - task: deploy:clean
-      - mkdir -p "{{.MODS_DIR}}"
-      - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/netstandard2.1/GravityBlastr.$mod.dll" "{{.MODS_DIR}}/"; done
-      - echo "Deployed (Mono) to {{.MODS_DIR}}"
+      - mkdir -p "$MODS_DIR"
+      - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/netstandard2.1/GravityBlastr.$mod.dll" "$MODS_DIR/"; done
+      - echo "Deployed (Mono) to $MODS_DIR"
 
   deploy:il2cpp:
     desc: Clean and copy built mod DLLs to game Mods folder (IL2CPP)
     cmds:
       - task: deploy:clean
-      - mkdir -p "{{.MODS_DIR}}"
-      - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/net6.0/GravityBlastr.$mod.dll" "{{.MODS_DIR}}/"; done
-      - echo "Deployed (IL2CPP) to {{.MODS_DIR}}"
+      - mkdir -p "$MODS_DIR"
+      - for mod in {{.MODS}}; do cp "src/$mod/bin/Debug/net6.0/GravityBlastr.$mod.dll" "$MODS_DIR/"; done
+      - echo "Deployed (IL2CPP) to $MODS_DIR"
 
   build-deploy:
     desc: Build all mods and deploy matching version to game
@@ -107,7 +98,7 @@ tasks:
     cmds:
       - |
         # 1. Detect game branch
-        if [ -f "{{.GAME_DIR}}/GameAssembly.dll" ]; then
+        if [ -f "$GAME_DIR/GameAssembly.dll" ]; then
           BRANCH="il2cpp"
           echo "Detected IL2CPP branch"
         else
@@ -118,7 +109,7 @@ tasks:
         # 2. Read game version and convert to four-part NuGet version
         VERSION=$(python3 -c "
         import re
-        with open('{{.GAME_DIR}}/Schedule I_Data/globalgamemanagers', 'rb') as f:
+        with open('$GAME_DIR/Schedule I_Data/globalgamemanagers', 'rb') as f:
             data = f.read()
         m = re.search(rb'(\d+\.\d+\.\d+[a-z]\d+)', data[1000:])
         print(m.group().decode() if m else 'unknown', end='')
@@ -132,43 +123,43 @@ tasks:
 
         if [ "$BRANCH" = "mono" ]; then
           mkdir -p "$STAGING/mono"
-          cp "{{.MONO_MANAGED}}/Assembly-CSharp.dll" \
-             "{{.MONO_MANAGED}}/UnityEngine.CoreModule.dll" \
-             "{{.MONO_MANAGED}}/UnityEngine.dll" \
-             "{{.MONO_MANAGED}}/Unity.TextMeshPro.dll" \
-             "{{.MONO_MANAGED}}/UnityEngine.UI.dll" \
-             "{{.MONO_MANAGED}}/UnityEngine.UIModule.dll" \
-             "{{.MONO_MANAGED}}/UnityEngine.InputLegacyModule.dll" \
-             "{{.MONO_MANAGED}}/UnityEngine.TextRenderingModule.dll" \
-             "{{.MONO_MANAGED}}/UnityEngine.TextCoreTextEngineModule.dll" \
-             "{{.MONO_MANAGED}}/UnityEngine.TextCoreFontEngineModule.dll" \
-             "{{.MONO_MANAGED}}/FishNet.Runtime.dll" \
-             "{{.MONO_MANAGED}}/Newtonsoft.Json.dll" \
-             "{{.MONO_MANAGED}}/ScheduleOne.Core.dll" \
-             "{{.MELONLOADER_MONO}}/MelonLoader.dll" \
-             "{{.MELONLOADER_MONO}}/0Harmony.dll" \
+          cp "$MONO_MANAGED/Assembly-CSharp.dll" \
+             "$MONO_MANAGED/UnityEngine.CoreModule.dll" \
+             "$MONO_MANAGED/UnityEngine.dll" \
+             "$MONO_MANAGED/Unity.TextMeshPro.dll" \
+             "$MONO_MANAGED/UnityEngine.UI.dll" \
+             "$MONO_MANAGED/UnityEngine.UIModule.dll" \
+             "$MONO_MANAGED/UnityEngine.InputLegacyModule.dll" \
+             "$MONO_MANAGED/UnityEngine.TextRenderingModule.dll" \
+             "$MONO_MANAGED/UnityEngine.TextCoreTextEngineModule.dll" \
+             "$MONO_MANAGED/UnityEngine.TextCoreFontEngineModule.dll" \
+             "$MONO_MANAGED/FishNet.Runtime.dll" \
+             "$MONO_MANAGED/Newtonsoft.Json.dll" \
+             "$MONO_MANAGED/ScheduleOne.Core.dll" \
+             "$MELONLOADER_MONO/MelonLoader.dll" \
+             "$MELONLOADER_MONO/0Harmony.dll" \
              "$STAGING/mono/"
           PACK_CSPROJ="packaging/GravityBlastr.ScheduleOne.Libs.Mono.csproj"
         else
           mkdir -p "$STAGING/il2cpp"
-          cp "{{.MELONLOADER_IL2CPP}}/MelonLoader.dll" \
-             "{{.MELONLOADER_IL2CPP}}/0Harmony.dll" \
-             "{{.MELONLOADER_IL2CPP}}/Il2CppInterop.Runtime.dll" \
-             "{{.MELONLOADER_IL2CPP}}/Il2CppInterop.Common.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/Assembly-CSharp.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.CoreModule.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.UI.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.UIModule.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.InputLegacyModule.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/Unity.TextMeshPro.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextRenderingModule.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextCoreTextEngineModule.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/UnityEngine.TextCoreFontEngineModule.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/Il2CppFishNet.Runtime.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/Il2CppNewtonsoft.Json.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/Il2Cppmscorlib.dll" \
-             "{{.IL2CPP_ASSEMBLIES}}/Il2CppScheduleOne.Core.dll" \
+          cp "$MELONLOADER_IL2CPP/MelonLoader.dll" \
+             "$MELONLOADER_IL2CPP/0Harmony.dll" \
+             "$MELONLOADER_IL2CPP/Il2CppInterop.Runtime.dll" \
+             "$MELONLOADER_IL2CPP/Il2CppInterop.Common.dll" \
+             "$IL2CPP_ASSEMBLIES/Assembly-CSharp.dll" \
+             "$IL2CPP_ASSEMBLIES/UnityEngine.CoreModule.dll" \
+             "$IL2CPP_ASSEMBLIES/UnityEngine.UI.dll" \
+             "$IL2CPP_ASSEMBLIES/UnityEngine.UIModule.dll" \
+             "$IL2CPP_ASSEMBLIES/UnityEngine.InputLegacyModule.dll" \
+             "$IL2CPP_ASSEMBLIES/Unity.TextMeshPro.dll" \
+             "$IL2CPP_ASSEMBLIES/UnityEngine.dll" \
+             "$IL2CPP_ASSEMBLIES/UnityEngine.TextRenderingModule.dll" \
+             "$IL2CPP_ASSEMBLIES/UnityEngine.TextCoreTextEngineModule.dll" \
+             "$IL2CPP_ASSEMBLIES/UnityEngine.TextCoreFontEngineModule.dll" \
+             "$IL2CPP_ASSEMBLIES/Il2CppFishNet.Runtime.dll" \
+             "$IL2CPP_ASSEMBLIES/Il2CppNewtonsoft.Json.dll" \
+             "$IL2CPP_ASSEMBLIES/Il2Cppmscorlib.dll" \
+             "$IL2CPP_ASSEMBLIES/Il2CppScheduleOne.Core.dll" \
              "$STAGING/il2cpp/"
           PACK_CSPROJ="packaging/GravityBlastr.ScheduleOne.Libs.IL2CPP.csproj"
         fi
@@ -189,9 +180,9 @@ tasks:
         git checkout -f "$BRANCH" 2>/dev/null || git checkout --orphan "$BRANCH"
         cd -
         if [ "$BRANCH" = "mono" ]; then
-          ASM_DLL="{{.MONO_MANAGED}}/Assembly-CSharp.dll"
+          ASM_DLL="$MONO_MANAGED/Assembly-CSharp.dll"
         else
-          ASM_DLL="{{.IL2CPP_ASSEMBLIES}}/Assembly-CSharp.dll"
+          ASM_DLL="$IL2CPP_ASSEMBLIES/Assembly-CSharp.dll"
         fi
         rm -rf {{.DECOMPILED_REPO}}/Assembly-CSharp
         ilspycmd "$ASM_DLL" -p -o {{.DECOMPILED_REPO}}/Assembly-CSharp
@@ -219,29 +210,39 @@ tasks:
   game:launch:
     desc: Launch Schedule I via Steam
     cmds:
-      - cmd /c start steam://rungameid/3164500
+      - |
+        if command -v xdg-open &>/dev/null; then
+          xdg-open steam://rungameid/3164500
+        else
+          cmd /c start steam://rungameid/3164500
+        fi
     silent: true
 
   deploy:clean:
     desc: Remove our mod DLLs from game Mods folder
     cmds:
-      - for mod in {{.MODS}}; do rm -f "{{.MODS_DIR}}/GravityBlastr.$mod.dll"; done
-      - echo "Cleaned our mods from {{.MODS_DIR}}"
+      - for mod in {{.MODS}}; do rm -f "$MODS_DIR/GravityBlastr.$mod.dll"; done
+      - echo "Cleaned our mods from $MODS_DIR"
 
   game:open:
-    desc: Open the game folder in Explorer
+    desc: Open the game folder in file manager
     cmds:
-      - cmd /c start "" "{{.GAME_DIR}}"
+      - |
+        if command -v xdg-open &>/dev/null; then
+          xdg-open "$GAME_DIR"
+        else
+          cmd /c start "" "$GAME_DIR"
+        fi
     silent: true
 
   game:check:
     desc: Check if game and MelonLoader are installed
     cmds:
       - |
-        test -d "{{.GAME_DIR}}" && echo "Game found" || echo "Game NOT found at {{.GAME_DIR}}"
-        test -f "{{.MELONLOADER_MONO}}/MelonLoader.dll" && echo "MelonLoader (Mono) found" || echo "MelonLoader (Mono) NOT found"
-        test -f "{{.MELONLOADER_IL2CPP}}/MelonLoader.dll" && echo "MelonLoader (IL2CPP) found" || echo "MelonLoader (IL2CPP) NOT found"
-        test -f "{{.MONO_MANAGED}}/Assembly-CSharp.dll" && echo "Game assemblies found (Mono)" || echo "Assembly-CSharp.dll not found - game may be on IL2CPP branch"
-        test -d "{{.IL2CPP_ASSEMBLIES}}" && echo "Il2CppAssemblies found" || echo "Il2CppAssemblies not found - run IL2CPP game once with MelonLoader"
-        if [ -f "{{.GAME_DIR}}/GameAssembly.dll" ]; then echo "Active branch: IL2CPP"; else echo "Active branch: Mono"; fi
+        test -d "$GAME_DIR" && echo "Game found" || echo "Game NOT found at $GAME_DIR"
+        test -f "$MELONLOADER_MONO/MelonLoader.dll" && echo "MelonLoader (Mono) found" || echo "MelonLoader (Mono) NOT found"
+        test -f "$MELONLOADER_IL2CPP/MelonLoader.dll" && echo "MelonLoader (IL2CPP) found" || echo "MelonLoader (IL2CPP) NOT found"
+        test -f "$MONO_MANAGED/Assembly-CSharp.dll" && echo "Game assemblies found (Mono)" || echo "Assembly-CSharp.dll not found - game may be on IL2CPP branch"
+        test -d "$IL2CPP_ASSEMBLIES" && echo "Il2CppAssemblies found" || echo "Il2CppAssemblies not found - run IL2CPP game once with MelonLoader"
+        if [ -f "$GAME_DIR/GameAssembly.dll" ]; then echo "Active branch: IL2CPP"; else echo "Active branch: Mono"; fi
     silent: true
