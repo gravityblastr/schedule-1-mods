@@ -11,6 +11,11 @@ on:
         description: 'Space-separated list of mods to publish (leave blank to auto-detect changed mods)'
         required: false
         type: string
+      dry_run:
+        description: 'Dry run — detect and log which mods would be published without actually publishing'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -70,7 +75,11 @@ jobs:
           mkdir -p .work/thunderstore
           echo "Publishing to Thunderstore: $CHANGED_MODS"
           for mod in $CHANGED_MODS; do
-            echo "Publishing $mod..."
-            sed -i "s/^versionNumber = .*/versionNumber = \"$VERSION\"/" "src/$mod/thunderstore.toml"
-            (cd src/$mod && tcli publish)
+            if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+              echo "[DRY RUN] Would publish $mod $VERSION to Thunderstore"
+            else
+              echo "Publishing $mod..."
+              sed -i "s/^versionNumber = .*/versionNumber = \"$VERSION\"/" "src/$mod/thunderstore.toml"
+              (cd src/$mod && tcli publish)
+            fi
           done

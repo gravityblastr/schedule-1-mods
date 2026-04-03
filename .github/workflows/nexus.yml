@@ -11,6 +11,11 @@ on:
         description: 'Space-separated list of mods to upload (leave blank to auto-detect changed mods)'
         required: false
         type: string
+      dry_run:
+        description: 'Dry run — detect and log which mods would be uploaded without actually uploading'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -92,8 +97,16 @@ jobs:
             rm "GravityBlastr.$mod.dll"
           done
 
+      - name: Dry run summary
+        if: env.CHANGED_MODS != '' && github.event.inputs.dry_run == 'true'
+        run: |
+          echo "=== DRY RUN: mods that would be uploaded to Nexus ==="
+          for mod in $CHANGED_MODS; do
+            echo "  $mod $VERSION (IL2CPP + Mono)"
+          done
+
       - name: Upload to Nexus Mods
-        if: env.CHANGED_MODS != ''
+        if: env.CHANGED_MODS != '' && github.event.inputs.dry_run != 'true'
         env:
           NEXUS_API_KEY: ${{ secrets.NEXUS_API_KEY }}
         run: |
